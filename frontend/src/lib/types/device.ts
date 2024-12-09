@@ -8,8 +8,10 @@ export type Device = RecordModel & {
 	status: 'pending' | 'online' | 'offline' | '';
 	ports: string[];
 	link: URL;
+	ping_cmd: string;
 	wake_cron: string;
 	wake_cron_enabled: boolean;
+	wake_cmd: string;
 	wake_confirm: boolean;
 	shutdown_cron: string;
 	shutdown_cron_enabled: boolean;
@@ -32,6 +34,7 @@ export type Device = RecordModel & {
 export type Port = RecordModel & {
 	name: string;
 	number: number;
+	link: string;
 };
 
 export type Group = RecordModel & {

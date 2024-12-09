@@ -1,12 +1,13 @@
 import themes from 'daisyui/src/theming/themes';
+import daisyui from 'daisyui';
 
 /** @type {import('tailwindcss').Config} */
 export default {
-	content: ['./src/**/*.{html,js,svelte,ts}', './node_modules/daisyui/**/*.{js,jsx,ts,tsx}'],
+	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
 		extend: {}
 	},
-	plugins: [require('daisyui')],
+	plugins: [daisyui],
 	daisyui: {
 		themes: [
 			{
@@ -15,9 +16,7 @@ export default {
 					primary: '#55BCD9',
 					secondary: '#D4A35C',
 					'primary-content': '#ffffff'
-				}
-			},
-			{
+				},
 				dark: {
 					...themes['dark'],
 					primary: '#55BCD9',
@@ -26,14 +25,24 @@ export default {
 					'--rounded-btn': '1.9rem',
 					'--tab-border': '2px',
 					'--tab-radius': '.5rem'
-				}
-			},
-			{
+				},
 				cupcake: {
 					...themes['cupcake'],
 					primary: '#55BCD9',
 					secondary: '#D4A35C',
 					'primary-content': '#ffffff'
+				},
+				colorful: {
+					...themes['light'],
+					primary: '#00bdf8',
+					secondary: '#009aff',
+					accent: '#00b3a2',
+					neutral: '#161200',
+					'base-100': '#ffffff',
+					info: '#00c5dc',
+					success: '#00d892',
+					warning: '#f77800',
+					error: '#f36165'
 				}
 			},
 			'bumblebee',

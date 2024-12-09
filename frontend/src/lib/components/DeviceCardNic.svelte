@@ -51,9 +51,10 @@
 				Authorization: $pocketbase.authStore.token
 			}
 		})
-			.then(async (data) => {
-				const dev = (await data.json()) as Device;
-				countdown(Date.parse(dev.updated));
+			.then((resp) => resp.json())
+			.then((data) => {
+				device = data as Device;
+				countdown(Date.parse(device.updated));
 			})
 			.catch((err) => {
 				toast.error(err.message);
@@ -66,9 +67,10 @@
 				Authorization: $pocketbase.authStore.token
 			}
 		})
-			.then(async (data) => {
-				const dev = (await data.json()) as Device;
-				countdown(Date.parse(dev.updated));
+			.then((resp) => resp.json())
+			.then((data) => {
+				device = data as Device;
+				countdown(Date.parse(device.updated));
 			})
 			.catch((err) => {
 				toast.error(err.message);
@@ -82,15 +84,24 @@
 			timeout = Math.round((end - Date.now()) / 1000);
 			if (timeout <= 0 || device.status !== 'pending') {
 				clearInterval(interval);
+				interval = 0;
 			}
 		}, 1000);
 	}
 
 	function handleClick() {
 		if (device.status === 'offline') {
-			device.wake_confirm ? askConfirmation('wake') : wake();
+			if (device.wake_confirm) {
+				askConfirmation('wake');
+			} else {
+				wake();
+			}
 		} else if (device.status === 'online') {
-			device.shutdown_confirm ? askConfirmation('shutdown') : shutdown();
+			if (device.shutdown_confirm) {
+				askConfirmation('shutdown');
+			} else {
+				shutdown();
+			}
 		}
 	}
 
@@ -105,7 +116,7 @@
 
 <li class="tooltip" class:disabled data-tip={hoverText}>
 	<div
-		class="flex items-start p-2 gap-4"
+		class="flex items-start gap-4 p-2"
 		on:click={disabled ? null : handleClick}
 		on:keydown={disabled ? null : handleClick}
 		role="none"
@@ -132,15 +143,23 @@
 		<div class="grow">
 			<div class="text-lg font-bold leading-4">{device.ip}</div>
 			<div>{device.mac}</div>
-			<div class="flex flex-wrap gap-x-4 gap-y-0">
+			<div class="flex flex-wrap gap-x-4">
 				{#if device?.expand?.ports}
 					{#each device?.expand?.ports.sort((a, b) => a.number - b.number) as port}
 						<span class="flex items-center gap-1 break-all">
 							{#if port.status}
 								<Fa icon={faCircle} class="text-success" />
-								{port.name} ({port.number})
 							{:else}
 								<Fa icon={faCircle} class="text-error" />
+							{/if}
+							{#if port.link}
+								<a
+									href={port.link}
+									target="_blank"
+									class="underline"
+									on:click={(e) => e.stopPropagation()}>{port.name} ({port.number})</a
+								>
+							{:else}
 								{port.name} ({port.number})
 							{/if}
 						</span>
@@ -153,7 +172,7 @@
 
 <dialog class="modal" bind:this={modalWake}>
 	<div class="modal-box">
-		<h3 class="font-bold text-lg">
+		<h3 class="text-lg font-bold">
 			{$LL.device.modal_confirm_wake_title({ device: device.name })}
 		</h3>
 		<p class="py-4">{$LL.device.modal_confirm_wake_desc({ device: device.name })}</p>
@@ -168,7 +187,7 @@
 
 <dialog class="modal" bind:this={modalShutdown}>
 	<div class="modal-box">
-		<h3 class="font-bold text-lg">
+		<h3 class="text-lg font-bold">
 			{$LL.device.modal_confirm_shutdown_title({ device: device.name })}
 		</h3>
 		<p class="py-4">{$LL.device.modal_confirm_shutdown_desc({ device: device.name })}</p>

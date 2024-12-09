@@ -64,8 +64,13 @@ const de = {
 		link: 'Link',
 		link_desc:
 			'Macht Ihren Gerätenamen zu einem anklickbaren Link, ideal zum Beispiel für die Verknüpfung eines Dashboards.',
+		ping: 'Ping',
+		ping_desc:
+			'Du kannst einen benutzerdefinierten Shell-Befehl verwenden, um festzustellen, ob das Gerät eingeschaltet ist. Der Befehl sollte einen Exit-Code von <span class="badge">0</span> zurückgeben, um anzuzeigen, dass das Gerät eingeschaltet ist. Jeder andere Exit-Code setzt den Status auf offline.',
+		ping_cmd: 'Eigener Ping-Befehl',
 		wake: 'Einschalten',
 		wake_desc: 'Du kannst das Gerät mit einem Cron-Job einschalten.',
+		wake_cmd: 'Eigener Einschalt-Befehl',
 		wake_cron: 'Cron',
 		wake_cron_enable: 'Aktivieren',
 		sol: 'Sleep-On-LAN',
@@ -74,7 +79,7 @@ const de = {
 		sol_desc2:
 			'SOL ist so konfiguriert, dass es Anfragen über HTTP statt über UDP sendet, um eine Autorisierung zu ermöglichen und die Zuverlässigkeit der Anfragen zu erhöhen.',
 		sol_desc3:
-			'Daher stellen Sie bitte sicher, dass Sie <span class="badge">HTTP:&lt;DEINPORT&gt;</span> im Abschnitt <span class="badge">Listener</span> der <a href="https://github.com/SR-G/sleep-on-lan#configuration" class="link" target="_blank">SOL-Konfiguration</a> hinzufügen.',
+			'Daher stell bitte sicher, dass du <span class="badge">HTTP:&lt;DEINPORT&gt;</span> im Abschnitt <span class="badge">Listener</span> der <a href="https://github.com/SR-G/sleep-on-lan#configuration" class="link" target="_blank">SOL-Konfiguration</a> hinzufügst.',
 		sol_enable: 'Sleep-On-LAN aktivieren',
 		sol_port: 'SOL Port',
 		sol_authorization: 'Authorisierung',
