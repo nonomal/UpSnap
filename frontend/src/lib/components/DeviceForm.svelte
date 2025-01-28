@@ -35,8 +35,15 @@
 				}
 			})
 		);
+		device.ip = device.ip.replaceAll(' ', '');
+		device.mac = device.mac.replaceAll(' ', '');
+		device.netmask = device.netmask.replaceAll(' ', '');
 		device.ports = portIds;
-		device.id ? updateDevice(device) : createDevice(device);
+		if (device.id) {
+			updateDevice(device);
+		} else {
+			createDevice(device);
+		}
 	}
 
 	async function updateDevice(device: Device) {
@@ -53,7 +60,9 @@
 	}
 
 	async function createDevice(device: Device) {
-		device.created_by = $pocketbase.authStore.isAdmin ? '' : $pocketbase.authStore.model?.id ?? '';
+		device.created_by = $pocketbase.authStore.isSuperuser
+			? ''
+			: ($pocketbase.authStore.record?.id ?? '');
 		$pocketbase
 			.collection('devices')
 			.create(device)
@@ -172,7 +181,7 @@
 	<div class="card w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.general()}</h2>
-			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 				<div class="form-control w-full max-w-xs">
 					<label class="label" for="device-name">
 						<div class="label-text">
@@ -237,46 +246,102 @@
 						required
 					/>
 				</div>
-				<span class="badge text-error self-center">* {$LL.device.general_required_field()}</span>
+				<div class="form-control w-full max-w-xs">
+					<label class="label" for="device-description">
+						<div class="label-text">
+							<span>{$LL.device.general_description()}</span>
+						</div>
+					</label>
+					<input
+						id="device-description"
+						type="text"
+						placeholder={$LL.device.general_description_placeholder()}
+						class="input w-full max-w-xs"
+						bind:value={device.description}
+					/>
+				</div>
+
+				<span class="badge self-center text-error">* {$LL.device.general_required_field()}</span>
 			</div>
 		</div>
 	</div>
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.ports()}</h2>
 			<p class="my-2">{$LL.device.ports_desc()}</p>
 			<div class="form-control w-full">
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 					<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
 					{#each device.expand.ports as _, index}
 						<DeviceFormPort bind:device {index} />
 					{/each}
 				</div>
 				<button
-					class="btn max-w-xs btn-primary mt-4"
+					class="btn btn-primary mt-4 max-w-xs"
 					on:click={() => createEmptyPort()}
 					type="button">{$LL.device.ports_add_new()}</button
 				>
 			</div>
 		</div>
 	</div>
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.link()}</h2>
 			<p class="my-2">
 				{$LL.device.link_desc()}
 			</p>
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				<div class="form-control w-full">
+					<label class="label" for="device-link">
+						<div class="label-text">{$LL.device.link()}</div>
+					</label>
+					<input
+						id="device-link"
+						type="url"
+						placeholder="https:// ..."
+						class="input w-full max-w-xs"
+						bind:value={device.link}
+					/>
+				</div>
+				<label class="form-control w-full max-w-xs">
+					<label class="label" for="device-link-open">
+						<div class="label-text">{$LL.device.link_open()}</div>
+					</label>
+					<select
+						id="device-link-open"
+						class="select select-bordered"
+						bind:value={device.link_open}
+					>
+						<option value="">{$LL.device.link_open_no()}</option>
+						<option value="same_tab">{$LL.device.link_open_same_tab()}</option>
+						<option value="new_tab">{$LL.device.link_open_new_tab()}</option>
+					</select>
+				</label>
+			</div>
+		</div>
+	</div>
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
+		<div class="card-body">
+			<h2 class="card-title">{$LL.device.ping()}</h2>
+			<p class="my-2">
+				<!-- eslint-disable svelte/no-at-html-tags -->
+				{@html $LL.device.ping_desc()}
+			</p>
 			<div class="form-control w-full">
+				<label class="label cursor-pointer" for="ping-cmd">
+					<span class="label-text">{$LL.device.ping_cmd()}</span>
+				</label>
 				<input
-					type="url"
-					placeholder="https:// ..."
-					class="input w-full max-w-xs"
-					bind:value={device.link}
+					id="ping-cmd"
+					type="text"
+					placeholder="$:"
+					class="input mb-2 w-full max-w-xs"
+					bind:value={device.ping_cmd}
 				/>
 			</div>
 		</div>
 	</div>
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.wake()}</h2>
 			<p class="my-2">
@@ -284,8 +349,20 @@
 				<!-- eslint-disable svelte/no-at-html-tags -->
 				{@html $LL.settings.ping_interval_desc2()}
 			</p>
+			<div class="form-control w-full">
+				<label class="label cursor-pointer" for="wake-cmd">
+					<span class="label-text">{$LL.device.wake_cmd()}</span>
+				</label>
+				<input
+					id="wake-cmd"
+					type="text"
+					placeholder="$:"
+					class="input mb-2 w-full max-w-xs"
+					bind:value={device.wake_cmd}
+				/>
+			</div>
 			<div class="form-control flex flex-row flex-wrap gap-4">
-				<div class="flex flex-row gap-2 items-center">
+				<div class="flex flex-row items-center gap-2">
 					<input
 						id="wake-confirm"
 						type="checkbox"
@@ -332,7 +409,7 @@
 		</div>
 	</div>
 
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">Sleep-On-LAN</h2>
 			<p class="mt-2">
@@ -346,10 +423,10 @@
 				<!-- eslint-disable svelte/no-at-html-tags -->
 				{@html $LL.device.sol_desc3()}
 			</p>
-			<div class="flex flex-row flex-wrap gap-4 items-end mt-4">
+			<div class="mt-4 flex flex-row flex-wrap items-end gap-4">
 				<div>
 					<div class="form-control flex flex-row flex-wrap gap-4">
-						<div class="flex flex-row gap-2 items-center">
+						<div class="flex flex-row items-center gap-2">
 							<input
 								id="sol-enable"
 								type="checkbox"
@@ -385,7 +462,7 @@
 				{#if device.sol_enabled}
 					<div>
 						<div class="form-control flex flex-row flex-wrap gap-4">
-							<div class="flex flex-row gap-2 items-center">
+							<div class="flex flex-row items-center gap-2">
 								<input
 									id="sol-auth"
 									type="checkbox"
@@ -441,7 +518,7 @@
 		</div>
 	</div>
 
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.shutdown()}</h2>
 			<p class="my-2">
@@ -449,13 +526,13 @@
 				{@html $LL.device.shutdown_desc()}
 			</p>
 			<p class="my-2 font-bold">{$LL.device.shutdown_examples()}</p>
-			<div class="mockup-code text-sm min-w-0 max-w-fit">
+			<div class="mockup-code min-w-0 max-w-fit text-sm">
 				<pre data-prefix="#"><code>{$LL.device.shutdown_examples_windows()}</code></pre>
 				<pre data-prefix="$" class="text-warning"><code
 						>net rpc shutdown -I 192.168.1.13 -U "user%password"</code
 					></pre>
 			</div>
-			<div class="mockup-code text-sm min-w-0 max-w-fit">
+			<div class="mockup-code min-w-0 max-w-fit text-sm">
 				<pre data-prefix="#"><code>{$LL.device.shutdown_examples_linux()}</code></pre>
 				<pre data-prefix="$" class="text-warning"><code
 						>sshpass -p password ssh -o "StrictHostKeyChecking=no" user@192.168.1.13 "sudo poweroff"</code
@@ -469,12 +546,12 @@
 					id="shutdown-cmd"
 					type="text"
 					placeholder="$:"
-					class="input w-full max-w-xs mb-2"
+					class="input mb-2 w-full max-w-xs"
 					bind:value={device.shutdown_cmd}
 				/>
 			</div>
 			<div class="form-control flex flex-row flex-wrap gap-4">
-				<div class="flex flex-row gap-2 items-center">
+				<div class="flex flex-row items-center gap-2">
 					<input
 						id="shutdown-confirm"
 						type="checkbox"
@@ -523,7 +600,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.password()}</h2>
 			<p class="my-2">
@@ -541,7 +618,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.groups()}</h2>
 			<p class="my-2">
@@ -552,13 +629,13 @@
 					<div class="join">
 						<div class=" tooltip" data-tip="Delete">
 							<button
-								class="join-item btn btn-error"
+								class="btn btn-error join-item"
 								type="button"
 								on:click={() => deleteGroup(group)}><Fa icon={faX} /></button
 							>
 						</div>
 						<div
-							class="btn bg-base-100 hover:bg-base-200 join-item"
+							class="btn join-item bg-base-100 hover:bg-base-200"
 							on:click={() => toggleGroup(group.id)}
 							role="none"
 						>
@@ -574,7 +651,7 @@
 			</div>
 			<div class="join max-w-xs">
 				<input
-					class="input input-bordered join-item w-full"
+					class="input join-item input-bordered w-full"
 					placeholder={$LL.device.groups_placeholder()}
 					type="text"
 					bind:value={newGroup}
@@ -586,13 +663,13 @@
 		</div>
 	</div>
 	<div class="card-actions mt-6 justify-end gap-4">
-		{#if $pocketbase.authStore.isAdmin || $permission.delete?.includes(device.id)}
+		{#if $pocketbase.authStore.isSuperuser || $permission.delete?.includes(device.id)}
 			<button class="btn btn-error" type="button" on:click={() => deleteModal.showModal()}
 				><Fa icon={faTrash} />{$LL.buttons.delete()}</button
 			>
 			<dialog class="modal" bind:this={deleteModal}>
 				<form method="dialog" class="modal-box">
-					<h3 class="font-bold text-lg">{$LL.users.confirm_delete_title()}</h3>
+					<h3 class="text-lg font-bold">{$LL.users.confirm_delete_title()}</h3>
 					<p class="py-4">{$LL.users.confirm_delete_desc({ username: device.name })}</p>
 					<div class="modal-action">
 						<button class="btn">{$LL.buttons.cancel()}</button>

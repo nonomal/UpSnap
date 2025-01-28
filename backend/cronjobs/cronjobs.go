@@ -2,27 +2,30 @@ package cronjobs
 
 import (
 	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/robfig/cron/v3"
 	"github.com/seriousm4x/upsnap/logger"
 	"github.com/seriousm4x/upsnap/networking"
 )
 
-var PingRunning bool = false
-var WakeShutdownRunning bool = false
-var CronPing *cron.Cron
-var CronWakeShutdown *cron.Cron
+var (
+	PingRunning         = false
+	WakeShutdownRunning = false
+	CronPing            = cron.New()
+	CronWakeShutdown    = cron.New()
+)
 
-func RunPing(app *pocketbase.PocketBase) {
-	PingRunning = true
+func SetPingJobs(app *pocketbase.PocketBase) {
+	// remove existing jobs
+	for _, job := range CronPing.Entries() {
+		CronPing.Remove(job.ID)
+	}
 
-	settingsPrivateRecords, err := app.Dao().FindRecordsByExpr("settings_private")
+	settingsPrivateRecords, err := app.FindAllRecords("settings_private")
 	if err != nil {
 		logger.Error.Println(err)
 	}
 
-	// init cronjob
-	CronPing = cron.New()
 	CronPing.AddFunc(settingsPrivateRecords[0].GetString("interval"), func() {
 		// skip cron if no realtime clients connected and lazy_ping is turned on
 		realtimeClients := len(app.SubscriptionsBroker().Clients())
@@ -30,24 +33,24 @@ func RunPing(app *pocketbase.PocketBase) {
 			return
 		}
 
-		devices, err := app.Dao().FindRecordsByExpr("devices")
+		devices, err := app.FindAllRecords("devices")
 		if err != nil {
 			logger.Error.Println(err)
 			return
 		}
 
 		// expand ports field
-		expandFetchFunc := func(c *models.Collection, ids []string) ([]*models.Record, error) {
-			return app.Dao().FindRecordsByIds(c.Id, ids, nil)
+		expandFetchFunc := func(c *core.Collection, ids []string) ([]*core.Record, error) {
+			return app.FindRecordsByIds(c.Id, ids, nil)
 		}
-		merr := app.Dao().ExpandRecords(devices, []string{"ports"}, expandFetchFunc)
+		merr := app.ExpandRecords(devices, []string{"ports"}, expandFetchFunc)
 		if len(merr) > 0 {
 			return
 		}
 
 		for _, device := range devices {
 			// ping device
-			go func(d *models.Record) {
+			go func(d *core.Record) {
 				status := d.GetString("status")
 				if status == "pending" {
 					return
@@ -57,7 +60,7 @@ func RunPing(app *pocketbase.PocketBase) {
 						return
 					}
 					d.Set("status", "online")
-					if err := app.Dao().SaveRecord(d); err != nil {
+					if err := app.Save(d); err != nil {
 						logger.Error.Println("Failed to save record:", err)
 					}
 				} else {
@@ -65,15 +68,15 @@ func RunPing(app *pocketbase.PocketBase) {
 						return
 					}
 					d.Set("status", "offline")
-					if err := app.Dao().SaveRecord(d); err != nil {
+					if err := app.Save(d); err != nil {
 						logger.Error.Println("Failed to save record:", err)
 					}
 				}
 			}(device)
 
 			// ping ports
-			go func(d *models.Record) {
-				ports, err := app.Dao().FindRecordsByIds("ports", d.GetStringSlice("ports"))
+			go func(d *core.Record) {
+				ports, err := app.FindRecordsByIds("ports", d.GetStringSlice("ports"))
 				if err != nil {
 					logger.Error.Println(err)
 				}
@@ -81,7 +84,7 @@ func RunPing(app *pocketbase.PocketBase) {
 					isUp := networking.CheckPort(d.GetString("ip"), port.GetString("number"))
 					if isUp != port.GetBool("status") {
 						port.Set("status", isUp)
-						if err := app.Dao().SaveRecord(port); err != nil {
+						if err := app.Save(port); err != nil {
 							logger.Error.Println("Failed to save record:", err)
 						}
 					}
@@ -89,90 +92,122 @@ func RunPing(app *pocketbase.PocketBase) {
 			}(device)
 		}
 	})
-	CronPing.Run()
 }
 
-func RunWakeShutdown(app *pocketbase.PocketBase) {
-	WakeShutdownRunning = true
+func SetWakeShutdownJobs(app *pocketbase.PocketBase) {
+	// remove existing jobs
+	for _, job := range CronWakeShutdown.Entries() {
+		CronWakeShutdown.Remove(job.ID)
+	}
 
-	CronWakeShutdown = cron.New()
-	devices, err := app.Dao().FindRecordsByExpr("devices")
+	devices, err := app.FindAllRecords("devices")
 	if err != nil {
 		logger.Error.Println(err)
 		return
 	}
-	for _, device := range devices {
-		dev := device
+	for _, dev := range devices {
 		wake_cron := dev.GetString("wake_cron")
 		wake_cron_enabled := dev.GetBool("wake_cron_enabled")
 		shutdown_cron := dev.GetString("shutdown_cron")
 		shutdown_cron_enabled := dev.GetBool("shutdown_cron_enabled")
 
 		if wake_cron_enabled && wake_cron != "" {
-			go func(d *models.Record) {
-				_, err := CronWakeShutdown.AddFunc(wake_cron, func() {
-					d.Set("status", "pending")
-					if err := app.Dao().SaveRecord(d); err != nil {
-						logger.Error.Println("Failed to save record:", err)
-					}
-					if err := networking.WakeDevice(d); err != nil {
-						logger.Error.Println(err)
-						d.Set("status", "offline")
-						if err := app.Dao().SaveRecord(d); err != nil {
-							logger.Error.Println("Failed to save record:", err)
-						}
-					} else {
-						d.Set("status", "online")
-						if err := app.Dao().SaveRecord(d); err != nil {
-							logger.Error.Println("Failed to save record:", err)
-						}
-					}
-				})
+			_, err := CronWakeShutdown.AddFunc(wake_cron, func() {
+				isOnline := networking.PingDevice(dev)
+				if isOnline {
+					return
+				}
+				d, err := app.FindRecordById("devices", dev.Id)
 				if err != nil {
 					logger.Error.Println(err)
+					return
 				}
-			}(dev)
+				d.Set("status", "pending")
+				if err := app.Save(d); err != nil {
+					logger.Error.Println("Failed to save record:", err)
+					return
+				}
+				if err := networking.WakeDevice(d); err != nil {
+					logger.Error.Println(err)
+					d.Set("status", "offline")
+				} else {
+					d.Set("status", "online")
+				}
+				if err := app.Save(d); err != nil {
+					logger.Error.Println("Failed to save record:", err)
+				}
+			})
+			if err != nil {
+				logger.Error.Println(err)
+			}
 		}
 
 		if shutdown_cron_enabled && shutdown_cron != "" {
-			go func(d *models.Record) {
-				_, err := CronWakeShutdown.AddFunc(shutdown_cron, func() {
-					d.Set("status", "pending")
-					if err := app.Dao().SaveRecord(d); err != nil {
-						logger.Error.Println("Failed to save record:", err)
-					}
-					if err := networking.ShutdownDevice(d); err != nil {
-						logger.Error.Println(err)
-						d.Set("status", "online")
-						if err := app.Dao().SaveRecord(d); err != nil {
-							logger.Error.Println("Failed to save record:", err)
-						}
-					} else {
-						d.Set("status", "offline")
-						if err := app.Dao().SaveRecord(d); err != nil {
-							logger.Error.Println("Failed to save record:", err)
-						}
-					}
-				})
+			_, err := CronWakeShutdown.AddFunc(shutdown_cron, func() {
+				isOnline := networking.PingDevice(dev)
+				if !isOnline {
+					return
+				}
+				d, err := app.FindRecordById("devices", dev.Id)
 				if err != nil {
 					logger.Error.Println(err)
+					return
 				}
-			}(dev)
+				status := d.GetString("status")
+				if status != "online" {
+					return
+				}
+				d.Set("status", "pending")
+				if err := app.Save(d); err != nil {
+					logger.Error.Println("Failed to save record:", err)
+				}
+				if err := networking.ShutdownDevice(d); err != nil {
+					logger.Error.Println(err)
+					d.Set("status", "online")
+				} else {
+					d.Set("status", "offline")
+				}
+				if err := app.Save(d); err != nil {
+					logger.Error.Println("Failed to save record:", err)
+				}
+			})
+			if err != nil {
+				logger.Error.Println(err)
+			}
 		}
 	}
-	CronWakeShutdown.Run()
 }
 
-func StopAll() {
-	if PingRunning {
-		logger.Info.Println("Stopping ping cronjob")
-		ctx := CronPing.Stop()
-		<-ctx.Done()
+func StartWakeShutdown() {
+	WakeShutdownRunning = true
+	go CronWakeShutdown.Run()
 
-	}
+}
+
+func StopWakeShutdown() {
 	if WakeShutdownRunning {
 		logger.Info.Println("Stopping wake/shutdown cronjob")
 		ctx := CronWakeShutdown.Stop()
 		<-ctx.Done()
 	}
+	WakeShutdownRunning = false
+}
+
+func StartPing() {
+	PingRunning = true
+	go CronPing.Run()
+}
+
+func StopPing() {
+	if PingRunning {
+		logger.Info.Println("Stopping wake/shutdown cronjob")
+		ctx := CronPing.Stop()
+		<-ctx.Done()
+	}
+	PingRunning = false
+}
+
+func StopAll() {
+	StopPing()
+	StopWakeShutdown()
 }

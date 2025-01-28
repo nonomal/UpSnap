@@ -4,6 +4,7 @@
 	import LL from '$lib/i18n/i18n-svelte';
 	import { pocketbase } from '$lib/stores/pocketbase';
 	import { settingsPub } from '$lib/stores/settings';
+	import type { SettingsPublic } from '$lib/types/settings';
 	import { faArrowRight, faEye } from '@fortawesome/free-solid-svg-icons';
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa';
@@ -25,14 +26,24 @@
 	});
 
 	async function register() {
-		$pocketbase.admins
-			.create({
-				email: form.email,
-				password: form.password,
-				passwordConfirm: form.confirm
+		$pocketbase
+			.send('/api/upsnap/init-superuser', {
+				method: 'POST',
+				body: {
+					email: form.email,
+					password: form.password,
+					password_confirm: form.confirm
+				}
 			})
 			.then(() => {
-				$pocketbase.admins
+				$pocketbase
+					.collection('settings_public')
+					.getFirstListItem('')
+					.then((data) => {
+						settingsPub.set(data as SettingsPublic);
+					});
+				$pocketbase
+					.collection('_superusers')
 					.authWithPassword(form.email, form.password)
 					.then(() => {
 						stepsCompleted = 2;
@@ -57,10 +68,10 @@
 </script>
 
 <div class="mt-10 flex items-center justify-center">
-	<div class="flex flex-col gap-16 w-screen max-w-lg my-4">
+	<div class="my-4 flex w-screen max-w-lg flex-col gap-16">
 		<div class="card bg-base-300 shadow-xl">
 			{#if $settingsPub?.setup_completed}
-				<figure class="w-72 mx-auto pt-6"><img src="/gopher.svg" alt="Gopher" /></figure>
+				<figure class="mx-auto w-72 pt-6"><img src="/gopher.svg" alt="Gopher" /></figure>
 				<div class="card-body">
 					<h2 class="card-title">{$LL.welcome.not_expected_title()}</h2>
 					<p>{$LL.welcome.not_expected_desc()}</p>
@@ -71,7 +82,7 @@
 					</div>
 				</div>
 			{:else if stepsCompleted === 0}
-				<figure class="w-44 mx-auto pt-6"><img src="/gopher.svg" alt="Gopher" /></figure>
+				<figure class="mx-auto w-44 pt-6"><img src="/gopher.svg" alt="Gopher" /></figure>
 				<div class="card-body">
 					<h2 class="card-title">{$LL.welcome.step1_page_title()}</h2>
 					<p>{$LL.welcome.step1_setup_desc()}</p>
@@ -104,7 +115,7 @@
 						</label>
 						<label class="relative block">
 							<div
-								class="absolute top-1/2 -translate-y-1/2 right-4 cursor-pointer"
+								class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
 								role="none"
 								on:click={() => toggleVisibility(inputPassword)}
 								on:keydown={() => toggleVisibility(inputPassword)}
@@ -127,7 +138,7 @@
 						</label>
 						<label class="relative block">
 							<div
-								class="absolute top-1/2 -translate-y-1/2 right-4 cursor-pointer"
+								class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
 								role="none"
 								on:click={() => toggleVisibility(inputConfirm)}
 								on:keydown={() => toggleVisibility(inputConfirm)}
@@ -145,7 +156,7 @@
 								bind:this={inputConfirm}
 							/>
 						</label>
-						<div class="card-actions justify-end mt-4">
+						<div class="card-actions mt-4 justify-end">
 							<button class="btn btn-primary" type="submit"
 								>{$LL.welcome.step2_btn_create()} <Fa icon={faArrowRight} /></button
 							>
@@ -153,7 +164,7 @@
 					</form>
 				</div>
 			{:else if stepsCompleted === 2}
-				<figure class="w-72 mx-auto pt-6"><img src="/gopher.svg" alt="Gopher" /></figure>
+				<figure class="mx-auto w-72 pt-6"><img src="/gopher.svg" alt="Gopher" /></figure>
 				<div class="card-body">
 					<h2 class="card-title">{$LL.welcome.step3_page_title()}</h2>
 					<p>{$LL.welcome.step3_page_desc()}</p>

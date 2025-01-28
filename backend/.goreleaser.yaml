@@ -1,5 +1,6 @@
+version: 2
 release:
-  draft: true
+  draft: false
   prerelease: auto
 before:
   hooks:
@@ -14,24 +15,25 @@ builds:
       - linux
       - windows
       - darwin
+      - freebsd
     goarch:
       - amd64
       - arm64
       - arm
     goarm:
-      - 6
-      - 7
+      - "6"
+      - "7"
     ignore:
       - goos: windows
         goarch: arm
       - goos: darwin
         goarch: arm
 archives:
-  - format: zip
+  - formats: [ 'zip' ]
 checksum:
   name_template: "checksums.txt"
 snapshot:
-  name_template: "{{ .Version }}"
+  version_template: "{{ .Version }}"
 changelog:
   use: github
   sort: asc
@@ -55,7 +57,7 @@ changelog:
       order: 2
 git:
   ignore_tags:
-    - "{{ if not .Prerelease}}beta{{ end }}"
+    - "{{ if not .Prerelease}}*beta*{{ end }}"
 aurs:
   - name: upsnap-bin
     homepage: https://github.com/seriousm4x/UpSnap
@@ -66,13 +68,8 @@ aurs:
     private_key: "{{ .Env.AUR_KEY }}"
     git_url: "ssh://aur@aur.archlinux.org/upsnap-bin.git"
     package: |-
-      # bin
       install -Dm755 "./upsnap" "${pkgdir}/usr/bin/upsnap"
-      sudo setcap cap_net_raw=+ep "${pkgdir}/usr/bin/upsnap"
     skip_upload: auto
-    depends:
-      - sudo
-      - libcap
     optdepends:
       - "nmap: to scan for network devices"
     commit_author:

@@ -15,16 +15,25 @@
 
 	// locales
 	const languageEmojis = {
+		de: '🇩🇪',
+		'de-DE': '🇩🇪',
 		en: '🇺🇸',
 		'en-US': '🇺🇸',
 		fr: '🇫🇷',
 		'fr-FR': '🇫🇷',
-		de: '🇩🇪',
-		'de-DE': '🇩🇪',
+		it: '🇮🇹',
+		'it-IT': '🇮🇹',
+		ja: '🇯🇵',
+		'ja-JP': '🇯🇵',
+		nl: '🇳🇱',
+		'nl-NL': '🇳🇱',
 		pt: '🇵🇹',
 		'pt-PT': '🇵🇹',
+		es: '🇪🇸',
+		'es-ES': '🇪🇸',
 		zh: '🇨🇳',
-		'zh-CN': '🇨🇳'
+		'zh-CN': '🇨🇳',
+		'zh-TW': '🇹🇼'
 	};
 	let localStorageLang: Locales | 'auto' = 'auto';
 	let selectedLanguage: Locales | 'auto' = localStorageLang;
@@ -61,10 +70,11 @@
 		await loadLocaleAsync(newLang);
 		setLocale(newLang);
 
-		if ($pocketbase.authStore.isAdmin) {
-			if (!$pocketbase.authStore.model?.id) return;
-			$pocketbase.admins
-				.update($pocketbase.authStore.model.id, { avatar: newAvatar })
+		if ($pocketbase.authStore.isSuperuser) {
+			if (!$pocketbase.authStore.record?.id) return;
+			$pocketbase
+				.collection('_superusers')
+				.update($pocketbase.authStore.record.id, { avatar: newAvatar })
 				.then(() => {
 					toast.success($LL.toasts.admin_saved());
 				})
@@ -72,10 +82,10 @@
 					toast.error(err.message);
 				});
 		} else {
-			if (!$pocketbase.authStore.model?.id) return;
+			if (!$pocketbase.authStore.record?.id) return;
 			$pocketbase
 				.collection('users')
-				.update($pocketbase.authStore.model.id, { avatar: newAvatar })
+				.update($pocketbase.authStore.record.id, { avatar: newAvatar })
 				.then(() => {
 					toast.success($LL.toasts.user_saved());
 				})
@@ -87,16 +97,16 @@
 
 	function changePassword() {
 		fetch(
-			`${backendUrl}api/${$pocketbase.authStore.isAdmin ? 'admins' : `collections/users/records`}/${
-				$pocketbase.authStore.model?.id
-			}`,
+			`${backendUrl}api/collections/${
+				$pocketbase.authStore.isSuperuser ? '_superusers' : `users`
+			}/records/${$pocketbase.authStore.record?.id}`,
 			{
 				method: 'PATCH',
 				headers: {
 					Authorization: $pocketbase.authStore.token,
 					'Content-Type': 'application/json'
 				},
-				body: $pocketbase.authStore.isAdmin ? adminBody : userBody
+				body: $pocketbase.authStore.isSuperuser ? adminBody : userBody
 			}
 		)
 			.then(async (data) => {
@@ -128,71 +138,63 @@
 	}
 </script>
 
-<h1 class="text-3xl font-bold mb-8">{$LL.account.page_title()}</h1>
+<h1 class="mb-8 text-3xl font-bold">{$LL.account.page_title()}</h1>
 <div class="card w-full bg-base-300 shadow-xl">
 	<div class="card-body">
-		<div class="flex flex-row gap-4 items-center">
+		<div class="flex flex-row items-center gap-4">
 			<div class="avatar">
 				<div class="w-16 rounded-full">
-					<!-- svelte static build will fail, because the image gets served from pocketbase
-								and is not a local static file -->
-					{#if $pocketbase.authStore.model?.id}
+					{#if $pocketbase.authStore.record?.id}
 						<img
-							src="{backendUrl}_/images/avatars/avatar{newAvatar ??
-								$pocketbase.authStore.model?.avatar}.svg"
-							alt="Avatar {newAvatar ?? $pocketbase.authStore.model?.avatar}"
+							src="/avatars/avatar{newAvatar ?? $pocketbase.authStore.record?.avatar}.svg"
+							alt="Avatar {newAvatar ?? $pocketbase.authStore.record?.avatar}"
 						/>
 					{/if}
 				</div>
 			</div>
 			<div>
 				<h2 class="card-title">
-					{$pocketbase.authStore.isAdmin
-						? $pocketbase.authStore.model?.email
-						: $pocketbase.authStore.model?.username}
+					{$pocketbase.authStore.isSuperuser
+						? $pocketbase.authStore.record?.email
+						: $pocketbase.authStore.record?.username}
 				</h2>
 				<h3>
-					{$pocketbase.authStore.isAdmin
+					{$pocketbase.authStore.isSuperuser
 						? $LL.account.account_type_admin()
 						: $LL.account.account_type_user()}
 				</h3>
 			</div>
 		</div>
 		<form on:submit|preventDefault={saveUser}>
-			<h2 class="card-title mt-4 mb-2">{$LL.account.avatar_title()}</h2>
+			<h2 class="card-title mb-2 mt-4">{$LL.account.avatar_title()}</h2>
 			<div class="flex flex-row flex-wrap gap-4">
 				{#each [...Array(10).keys()] as i}
-					<div class="avatar btn btn-ghost btn-circle">
+					<div class="avatar btn btn-circle btn-ghost">
 						<div
 							class="w-11 rounded-full"
 							class:ring={newAvatar !== undefined
 								? i === newAvatar
-								: i === $pocketbase.authStore.model?.avatar}
+								: i === $pocketbase.authStore.record?.avatar}
 							class:ring-primary={newAvatar !== undefined
 								? i === newAvatar
-								: i === $pocketbase.authStore.model?.avatar}
+								: i === $pocketbase.authStore.record?.avatar}
 							class:ring-offset-base-100={newAvatar !== undefined
 								? i === newAvatar
-								: i === $pocketbase.authStore.model?.avatar}
+								: i === $pocketbase.authStore.record?.avatar}
 							class:ring-offset-2={newAvatar !== undefined
 								? i === newAvatar
-								: i === $pocketbase.authStore.model?.avatar}
+								: i === $pocketbase.authStore.record?.avatar}
 							on:click={() => (newAvatar = i)}
 							role="none"
 						>
-							<!-- svelte static build will fail, because the image gets served from pocketbase
-								and is not a local static file -->
-							{#if $pocketbase.authStore.model?.id}
-								<img
-									src="{backendUrl}_/images/avatars/avatar{i}.svg"
-									alt="{$LL.account.avatar_title()} {i}"
-								/>
+							{#if $pocketbase.authStore.record?.id}
+								<img src="/avatars/avatar{i}.svg" alt="{$LL.account.avatar_title()} {i}" />
 							{/if}
 						</div>
 					</div>
 				{/each}
 			</div>
-			<h2 class="card-title mt-4 mb-2">{$LL.account.language_title()}</h2>
+			<h2 class="card-title mb-2 mt-4">{$LL.account.language_title()}</h2>
 			<select class="select select-bordered w-full max-w-xs" bind:value={selectedLanguage}>
 				<option value="auto" selected={localStorageLang === null}
 					>🌐 {$LL.account.language_option_auto()}</option
@@ -212,13 +214,13 @@
 		</form>
 	</div>
 </div>
-<div class="card w-full bg-base-300 shadow-xl mt-6">
+<div class="card mt-6 w-full bg-base-300 shadow-xl">
 	<div class="card-body">
 		<h2 class="card-title">{$LL.account.change_password_title()}</h2>
 		<p>{$LL.account.change_password_body()}</p>
 		<form on:submit|preventDefault={changePassword}>
 			<div class="form-control w-full max-w-xs">
-				{#if !$pocketbase.authStore.isAdmin}
+				{#if !$pocketbase.authStore.isSuperuser}
 					<label class="label" for="password-old">
 						<span class="label-text">{$LL.account.change_password_label()}</span>
 					</label>
@@ -241,7 +243,7 @@
 					type="password"
 					placeholder={$LL.account.change_password_new()}
 					class="input input-bordered w-full max-w-xs"
-					minlength={$pocketbase.authStore.isAdmin ? 10 : 5}
+					minlength={$pocketbase.authStore.isSuperuser ? 10 : 5}
 					maxlength="72"
 					bind:value={newPassword.password}
 					required
@@ -256,7 +258,7 @@
 					type="password"
 					placeholder={$LL.account.change_password_confirm()}
 					class="input input-bordered w-full max-w-xs"
-					minlength={$pocketbase.authStore.isAdmin ? 10 : 5}
+					minlength={$pocketbase.authStore.isSuperuser ? 10 : 5}
 					maxlength="72"
 					bind:value={newPassword.confirm}
 					required

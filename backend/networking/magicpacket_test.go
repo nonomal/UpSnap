@@ -1,11 +1,10 @@
 package networking
 
 import (
-	"fmt"
 	"net"
 	"testing"
 
-	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type Device struct {
@@ -17,7 +16,7 @@ type Device struct {
 }
 
 func TestSendMagicPacket(t *testing.T) {
-	collection := &models.Collection{}
+	collection := &core.Collection{}
 	devices_success := []Device{
 		{
 			IP:       "8.8.8.8",
@@ -49,7 +48,7 @@ func TestSendMagicPacket(t *testing.T) {
 	}
 
 	for _, v := range devices_success {
-		device := models.NewRecord(collection)
+		device := core.NewRecord(collection)
 		device.Set("ip", v.IP)
 		device.Set("mac", v.MAC)
 		device.Set("netmask", v.Netmask)
@@ -60,7 +59,7 @@ func TestSendMagicPacket(t *testing.T) {
 		}
 	}
 	for _, v := range devices_fail {
-		device := models.NewRecord(collection)
+		device := core.NewRecord(collection)
 		device.Set("ip", v.IP)
 		device.Set("mac", v.MAC)
 		device.Set("netmask", v.Netmask)
@@ -121,10 +120,9 @@ func TestWakeUDP(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		targetAddr := fmt.Sprintf("%s:%d", broadcastIp, 9)
 
-		if err := wakeUDP(targetAddr, parsedMac, bytePassword); err != nil {
-			t.Fatalf(`%v (targetAddr "%v", parsedMac "%v", bytePassword "%v")`, err, targetAddr, parsedMac, bytePassword)
+		if err := wakeUDP(broadcastIp, parsedMac, bytePassword); err != nil {
+			t.Fatalf(`%v (broadcastIp "%v", parsedMac "%v", bytePassword "%v")`, err, broadcastIp, parsedMac, bytePassword)
 		}
 	}
 }

@@ -6,10 +6,10 @@ import (
 	"net"
 
 	"github.com/mdlayher/wol"
-	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/core"
 )
 
-func SendMagicPacket(device *models.Record) error {
+func SendMagicPacket(device *core.Record) error {
 	ip := device.GetString("ip")
 	mac := device.GetString("mac")
 	netmask := device.GetString("netmask")
@@ -32,23 +32,41 @@ func SendMagicPacket(device *models.Record) error {
 	if err != nil {
 		return err
 	}
-	targetAddr := fmt.Sprintf("%s:%d", broadcastIp, 9)
 
 	// send wake via udp port 9
-	if err := wakeUDP(targetAddr, parsedMac, bytePassword); err != nil {
+	if err := wakeUDP(broadcastIp, parsedMac, bytePassword); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func wakeUDP(addr string, target net.HardwareAddr, password []byte) error {
+func wakeUDP(broadcastIp string, target net.HardwareAddr, password []byte) error {
 	c, err := wol.NewClient()
 	if err != nil {
 		return err
 	}
 	defer c.Close()
-	return c.WakePassword(addr, target, password)
+
+	// send 4 magic packets to different addresses to enhance change of waking up
+	destinations := []string{
+		// default user-calculated broadcast to port 9
+		fmt.Sprintf("%s:9", broadcastIp),
+		// user-calculated broadcast to port alternative port 7
+		fmt.Sprintf("%s:7", broadcastIp),
+		// broadcast to port 9
+		"255.255.255.255:9",
+		// broadcast to alternative port 7
+		"255.255.255.255:7",
+	}
+
+	for _, dest := range destinations {
+		if err := c.WakePassword(dest, target, password); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func getBroadcastIp(ipStr, maskStr string) (string, error) {

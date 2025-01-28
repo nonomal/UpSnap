@@ -32,10 +32,10 @@
 
 		$pocketbase.authStore.onChange(() => {
 			// load user permissions
-			if ($pocketbase.authStore.model?.collectionName === 'users') {
+			if ($pocketbase.authStore.record?.collectionName === 'users') {
 				$pocketbase
 					.collection('permissions')
-					.getFirstListItem(`user.id = '${$pocketbase.authStore.model.id}'`)
+					.getFirstListItem(`user.id = '${$pocketbase.authStore.record.id}'`)
 					.then((data) => {
 						permission.set(data as Permission);
 					})
@@ -58,58 +58,30 @@
 
 		// redirect to welcome page if setup is not completed
 		if ($settingsPub.setup_completed === false && $page.url.pathname !== '/welcome') {
+			$pocketbase.authStore.clear();
 			goto('/welcome');
 			return;
 		}
 
-		// load auth from localstorage
-		const pbCookie = localStorage.getItem('pocketbase_auth');
-		if (!pbCookie) {
-			goto('/login');
-			return;
-		}
-
-		$pocketbase.authStore.loadFromCookie('pb_auth=' + pbCookie);
-		if (!$pocketbase.authStore.isValid) {
-			goto('/login');
-			return;
-		}
-
-		// only refresh token if valid less than 1 day
-		const jwt = parseJwt($pocketbase.authStore.token);
-		if (jwt.exp > Date.now() / 1000 + 60 * 60 * 24) {
-			return;
-		}
-
-		if ($pocketbase.authStore.isAdmin) {
-			await $pocketbase.admins.authRefresh().catch(() => {
-				goto('/login');
-			});
+		// refresh auth token
+		if ($pocketbase.authStore.isSuperuser) {
+			await $pocketbase
+				.collection('_superusers')
+				.authRefresh()
+				.catch(() => {
+					$pocketbase.authStore.clear();
+					goto('/login');
+				});
 		} else {
 			await $pocketbase
 				.collection('users')
 				.authRefresh()
 				.catch(() => {
+					$pocketbase.authStore.clear();
 					goto('/login');
 				});
 		}
 	});
-
-	function parseJwt(token: string) {
-		var base64Url = token.split('.')[1];
-		var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-		var jsonPayload = decodeURIComponent(
-			window
-				.atob(base64)
-				.split('')
-				.map(function (c) {
-					return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-				})
-				.join('')
-		);
-
-		return JSON.parse(jsonPayload);
-	}
 </script>
 
 <svelte:head>
@@ -133,7 +105,7 @@
 <Toaster position="bottom-center" {toastOptions} />
 
 <Transition url={$page.url}>
-	<div class="container mx-auto p-2 mb-4">
+	<div class="container mx-auto mb-4 p-2">
 		<slot />
 	</div>
 </Transition>

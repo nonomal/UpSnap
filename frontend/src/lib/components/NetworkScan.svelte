@@ -28,8 +28,9 @@
 				.collection('settings_private')
 				.getFirstListItem('')
 				.then((res) => {
-					settingsPriv.set(res as SettingsPrivate);
-					scanRange = $settingsPriv.scan_range;
+					const settings = res as SettingsPrivate;
+					settingsPriv.set(settings);
+					scanRange = settings.scan_range;
 				})
 				.catch((err) => {
 					toast.error(err.message);
@@ -116,13 +117,13 @@
 </script>
 
 {#if $settingsPriv}
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card mt-6 w-full bg-base-300 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.tabs[1]()}</h2>
 			<p class="my-2">
 				{$LL.device.network_scan_desc()}
 			</p>
-			<div class="flex flex-row flex-wrap gap-4 items-end">
+			<div class="flex flex-row flex-wrap items-end gap-4">
 				<form on:submit|preventDefault={saveSettings}>
 					<label class="label" for="scan-range">
 						<span class="label-text">{$LL.device.network_scan_ip_range()}</span>
@@ -130,7 +131,7 @@
 					<div class="join max-w-xs">
 						<input
 							id="scan-range"
-							class="input input-bordered join-item w-full"
+							class="input join-item input-bordered w-full"
 							type="text"
 							placeholder="192.168.1.0/24"
 							bind:value={scanRange}
@@ -192,7 +193,7 @@
 								</div>
 								<div class="ms-auto">
 									<button
-										class="btn btn-sm btn-success"
+										class="btn btn-success btn-sm"
 										on:click={(e) => {
 											addSingle(device);
 											e.currentTarget.disabled = true;
@@ -219,7 +220,7 @@
 							id="replaceNetmaskInput"
 							class="input input-bordered"
 							type="text"
-							placeholder="255.255.0.0"
+							placeholder="255.255.255.0"
 							bind:value={replaceNetmask}
 						/>
 					</div>
