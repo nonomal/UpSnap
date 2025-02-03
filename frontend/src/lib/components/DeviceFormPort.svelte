@@ -6,7 +6,6 @@
 	import type { RecordModel } from 'pocketbase';
 	import Fa from 'svelte-fa';
 	import toast from 'svelte-french-toast';
-	import { scale } from 'svelte/transition';
 
 	export let device: Device;
 	export let index: number;
@@ -28,45 +27,51 @@
 </script>
 
 {#if device.expand.ports[index]}
-	<div class="card bg-base-100 shadow-sm" transition:scale={{ delay: 0, duration: 200 }}>
-		<div class="card-body p-3">
-			<div class="flex flex-row gap-2">
-				<div>
-					<label class="label p-0" for="port-name-{index}">
-						<span class="label-text">{$LL.device.ports_name()}</span>
-					</label>
+	<fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-xs border p-4">
+		<legend class="fieldset-legend"># {device.expand.ports.length}</legend>
+		<div class="flex flex-row gap-2">
+			<fieldset class="fieldset">
+				<label class="floating-label">
+					<span>{$LL.device.ports_name()} <span class="text-error">*</span></span>
 					<input
-						id="port-name-{index}"
 						type="text"
-						placeholder="ssh"
-						class="input input-sm input-bordered w-full"
+						placeholder={$LL.device.ports_name()}
+						class="input"
 						required
 						bind:value={device.expand.ports[index].name}
 					/>
-				</div>
-				<div>
-					<label class="label p-0" for="port-number-{index}">
-						<span class="label-text">{$LL.device.ports_number()}</span>
-					</label>
+				</label>
+			</fieldset>
+			<fieldset class="fieldset">
+				<label class="floating-label">
+					<span>{$LL.device.ports_number()} <span class="text-error">*</span></span>
 					<input
-						id="port-number-{index}"
 						type="number"
-						placeholder="22"
+						placeholder={$LL.device.ports_number()}
+						class="input"
 						min="1"
 						max="65535"
-						class="input input-sm input-bordered w-full"
 						required
 						bind:value={device.expand.ports[index].number}
 					/>
-				</div>
-			</div>
-			<div class="card-actions justify-end">
-				<button
-					class="btn btn-xs btn-outline btn-error"
-					on:click={() => deletePort(device.expand.ports[index])}
-					type="button"><Fa icon={faTrash} />{$LL.buttons.delete()}</button
-				>
-			</div>
+				</label>
+			</fieldset>
 		</div>
-	</div>
+		<fieldset class="fieldset">
+			<label class="floating-label">
+				<span>{$LL.device.link()}</span>
+				<input
+					type="text"
+					placeholder={$LL.device.link()}
+					class="input"
+					bind:value={device.expand.ports[index].link}
+				/>
+			</label>
+		</fieldset>
+		<button
+			class="btn btn-error btn-xs btn-soft ms-auto"
+			on:click={() => deletePort(device.expand.ports[index])}
+			type="button"><Fa icon={faTrash} />{$LL.buttons.delete()}</button
+		>
+	</fieldset>
 {/if}

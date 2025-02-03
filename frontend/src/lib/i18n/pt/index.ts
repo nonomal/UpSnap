@@ -12,7 +12,8 @@ const pt = {
 		no_devices: 'Sem dispositivos.',
 		add_first_device: 'Adicione o seu primeiro dispositivo',
 		grant_permissions:
-			'Peça ao administrador para alterar as suas permissões para dispositivos existentes ou para criar novos.'
+			'Peça ao administrador para alterar as suas permissões para dispositivos existentes ou para criar novos.',
+		search_placeholder: 'Procurar dispositivos'
 	},
 	account: {
 		page_title: 'Conta',
@@ -51,10 +52,11 @@ const pt = {
 		modal_confirm_shutdown_desc: 'Confirme o encerramento do {device}.',
 		general: 'Geral',
 		general_name: 'Nome',
-		general_name_placeholder: 'Nome do dispositivo',
 		general_ip: 'IP',
 		general_mac: 'Mac',
 		general_netmask: 'Máscara de rede',
+		general_description: 'Descrição',
+		general_description_placeholder: 'Alguma descrição do dispositivo',
 		general_required_field: 'campo obrigatório',
 		ports: 'Portos',
 		ports_desc: 'UpSnap pode verificar se certos portos estão abertos.',
@@ -64,8 +66,17 @@ const pt = {
 		link: 'Link',
 		link_desc:
 			'Permite que o nome do seu dispositivo seja um link. Perfeito para dashboard, por exemplo.',
+		link_open: 'Abrir automaticamente a ligação',
+		link_open_no: 'Não',
+		link_open_same_tab: 'O mesmo separador',
+		link_open_new_tab: 'Novo separador',
+		ping: 'Ping',
+		ping_desc:
+			'Pode utilizar um comando shell personalizado para ver se o dispositivo está ligado. O comando deve devolver um código de saída de <span class="badge">0</span> para indicar que o dispositivo está ligado, qualquer outro código de saída marcará o dispositivo como desligado.',
+		ping_cmd: 'Comando ping personalizado',
 		wake: 'Ligar',
 		wake_desc: 'Poderá ligar este dispositivo através dum cron job agendado.',
+		wake_cmd: 'Comando de despertar personalizado',
 		wake_cron: 'Wake cron',
 		wake_cron_enable: 'Ativar wake cron',
 		sol: 'Sleep-On-LAN',

@@ -5,25 +5,31 @@
 <div align="center" width="100%">
     <h2>UpSnap</h2>
     <p>A simple wake on lan web app written with SvelteKit, Go and PocketBase.</p>
-    <a target="_blank" href="https://github.com/seriousm4x/upsnap"><img src="https://img.shields.io/github/stars/seriousm4x/upsnap" /></a>
-    <a target="_blank" href="https://github.com/seriousm4x/UpSnap/releases"><img src="https://img.shields.io/github/downloads/seriousm4x/upsnap/total" /></a>
-    <a target="_blank" href="https://github.com/seriousm4x/UpSnap/releases"><img src="https://img.shields.io/github/go-mod/go-version/seriousm4x/UpSnap?filename=backend/go.mod" /></a>
-    <a target="_blank" href="https://github.com/seriousm4x/UpSnap/releases"><img src="https://img.shields.io/github/v/release/seriousm4x/upsnap?display_name=tag" /></a>
-    <a target="_blank" href="https://github.com/seriousm4x/UpSnap/actions"><img src="https://github.com/seriousm4x/upsnap/actions/workflows/release.yml/badge.svg?event=push" /></a>
-    <a target="_blank" href="https://github.com/seriousm4x/UpSnap/commits/master"><img src="https://img.shields.io/github/last-commit/seriousm4x/upsnap" /></a>
+    <div>
+        <a target="_blank" href="https://github.com/seriousm4x/upsnap"><img src="https://img.shields.io/github/stars/seriousm4x/UpSnap?style=flat&label=Stars" /></a>
+        <a target="_blank" href="https://github.com/seriousm4x/UpSnap/pkgs/container/upsnap"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fipitio%2Fbackage%2Findex%2Fseriousm4x%2FUpSnap%2Fupsnap.json&query=downloads&label=ghcr.io%20pulls" /></a>
+        <a target="_blank" href="https://hub.docker.com/r/seriousm4x/upsnap"><img src="https://img.shields.io/docker/pulls/seriousm4x/upsnap?label=docker%20hub%20pulls" /></a>
+        <a target="_blank" href="https://github.com/seriousm4x/UpSnap/releases"><img src="https://img.shields.io/github/downloads/seriousm4x/upsnap/total?label=binary%20downloads" /></a>
+    </div>
+    <div>
+        <a target="_blank" href="https://github.com/seriousm4x/UpSnap/releases"><img src="https://img.shields.io/github/go-mod/go-version/seriousm4x/UpSnap?filename=backend/go.mod" /></a>
+        <a target="_blank" href="https://github.com/seriousm4x/UpSnap/releases"><img src="https://img.shields.io/github/v/release/seriousm4x/upsnap?display_name=tag&label=Latest%20release" /></a>
+        <a target="_blank" href="https://github.com/seriousm4x/UpSnap/actions"><img src="https://github.com/seriousm4x/upsnap/actions/workflows/release.yml/badge.svg?event=push" /></a>
+        <a target="_blank" href="https://github.com/seriousm4x/UpSnap/commits/master"><img src="https://img.shields.io/github/last-commit/seriousm4x/upsnap" /></a>
+    </div>
 </div>
 
 ## ✨ Features
 
--   🚀 One-Click Device Wake-Up Dashboard
--   ⏰ Timed Events via Cron for Automation
--   🔌 Ping Any Port You Choose
--   🔍 Discover Devices with Network Scanning (nmap required)
--   👤 Secured User Management
--   🌐 i18n support for [these](https://github.com/seriousm4x/UpSnap/tree/master/frontend/src/lib/i18n) languages
--   🎨 29 Themes
--   🐳 [Docker images](https://github.com/seriousm4x/UpSnap/pkgs/container/upsnap) for amd64, arm64, arm/v7, arm/v6
--   🏠 Self-Hostable, No Cloud Bullshit!
+- 🚀 One-Click Device Wake-Up Dashboard
+- ⏰ Timed Events via Cron for Automation
+- 🔌 Ping Any Port You Choose
+- 🔍 Discover Devices with Network Scanning (nmap required)
+- 👤 Secured User Management
+- 🌐 i18n support for [these](https://github.com/seriousm4x/UpSnap/tree/master/frontend/src/lib/i18n) languages
+- 🎨 29 Themes
+- 🐳 [Docker images](https://github.com/seriousm4x/UpSnap/pkgs/container/upsnap) for amd64, arm64, arm/v7, arm/v6
+- 🏠 Self-Hostable
 
 ## 📸 Screenshots
 
@@ -84,7 +90,7 @@ If you want to change the port from 8090 to something else, change the following
 ```yml
 entrypoint: /bin/sh -c "./upsnap serve --http 0.0.0.0:5000"
 healthcheck:
-    test: curl -fs "http://localhost:5000/api/health" || exit 1
+  test: curl -fs "http://localhost:5000/api/health" || exit 1
 ```
 
 ### Install additional packages for shutdown cmd
@@ -121,11 +127,17 @@ Although UpSnap has user authorisation, it is **not recommended to expose it to 
 
 UpSnap is available in the following languages so far:
 
--   🇺🇸 **English** (en-US)
--   🇩🇪 **German** (de-DE)
--   🇫🇷 **French** (fr-FR)
--   🇵🇹 **Portuguese** (pt-PT)
--   🇨🇳 **Chinese** (zh-CN)
+- 🇺🇸 **English** (en-US)
+- 🇩🇪 **German** (de-DE)
+- 🇪🇸 **Spanish** (es-ES)
+- 🇫🇷 **French** (fr-FR)
+- 🇮🇹 **Italian** (it-IT)
+- 🇯🇵 **Japanese** (ja-JP)
+- 🇳🇱 **Dutch** (nl-NL)
+- 🇵🇱 **Polish** (pl-PL)
+- 🇵🇹 **Portuguese** (pt-PT)
+- 🇨🇳 **Chinese** (zh-CN)
+- 🇹🇼 **Chinese (Taiwan)** (zh-TW)
 
 **If you want to contribute and help translating, check the wiki: [How to add languages](https://github.com/seriousm4x/UpSnap/wiki/How-to-add-languages)**
 

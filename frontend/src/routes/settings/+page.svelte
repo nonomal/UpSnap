@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { PUBLIC_VERSION } from '$env/static/public';
 	import PageLoading from '$lib/components/PageLoading.svelte';
 	import LL from '$lib/i18n/i18n-svelte';
@@ -18,8 +18,8 @@
 	let faviconInputElement: HTMLInputElement;
 
 	onMount(() => {
-		if (!$pocketbase.authStore.isAdmin) {
-			toast($LL.toasts.no_permission({ url: $page.url.pathname }), {
+		if (!$pocketbase.authStore.isSuperuser) {
+			toast($LL.toasts.no_permission({ url: page.url.pathname }), {
 				icon: '⛔'
 			});
 			goto('/');
@@ -90,9 +90,9 @@
 {#if settingsPubClone === undefined || settingsPrivClone === undefined}
 	<PageLoading />
 {:else}
-	<h1 class="text-3xl font-bold mb-8">{$LL.settings.page_title()}</h1>
+	<h1 class="mb-8 text-3xl font-bold">{$LL.settings.page_title()}</h1>
 	<form on:submit|preventDefault={save}>
-		<div class="card w-full bg-base-300 shadow-xl mt-6">
+		<div class="card bg-base-200 mt-6 w-full shadow-sm">
 			<div class="card-body">
 				<h2 class="card-title">{$LL.settings.ping_interval_title()}</h2>
 				<p class="mt-2">
@@ -106,11 +106,11 @@
 					<!-- eslint-disable svelte/no-at-html-tags -->
 					{@html $LL.settings.ping_interval_desc2()}
 				</p>
-				<div class="form-control w-full mt-2">
+				<div class="mt-2 w-full">
 					<input
 						type="text"
 						placeholder="e.g. '@every 5s' or '@every 1m'"
-						class="input w-full max-w-xs"
+						class="input"
 						bind:value={settingsPrivClone.interval}
 					/>
 				</div>
@@ -118,33 +118,29 @@
 				<p class="mt-2">
 					{$LL.settings.lazy_ping_desc()}
 				</p>
-				<div class="form-control w-fit">
+				<div class="w-fit">
 					<label class="label cursor-pointer gap-2">
-						<input
-							type="checkbox"
-							class="checkbox checkbox-primary"
-							bind:checked={settingsPrivClone.lazy_ping}
-						/>
-						<span class="label-text">{$LL.settings.lazy_ping_enable()}</span>
+						<input type="checkbox" class="checkbox" bind:checked={settingsPrivClone.lazy_ping} />
+						<span>{$LL.settings.lazy_ping_enable()}</span>
 					</label>
 				</div>
 			</div>
 		</div>
-		<div class="card w-full bg-base-300 shadow-xl mt-6">
+		<div class="card bg-base-200 mt-6 w-full shadow-sm">
 			<div class="card-body">
 				<h2 class="card-title">{$LL.settings.website_title_title()}</h2>
 				<p class="my-2">{$LL.settings.website_title_desc()}</p>
-				<div class="form-control w-full">
+				<div class="w-full">
 					<input
 						type="text"
 						placeholder="e.g. 'UpSnap'"
-						class="input w-full max-w-xs"
+						class="input"
 						bind:value={settingsPubClone.website_title}
 					/>
 				</div>
 			</div>
 		</div>
-		<div class="card w-full bg-base-300 shadow-xl mt-6">
+		<div class="card bg-base-200 mt-6 w-full shadow-sm">
 			<div class="card-body">
 				<h2 class="card-title">{$LL.settings.icon_title()}</h2>
 				<p class="my-2">
@@ -163,27 +159,27 @@
 						bind:this={faviconPreview}
 					/>
 				</div>
-				<div class="form-control w-full max-w-md flex flex-row gap-4">
+				<div class="flex w-full max-w-md flex-row gap-4">
 					<input
 						type="file"
-						class="file-input w-full max-w-xs"
+						class="file-input"
 						accept=".ico,.png,.svg,.gif,.jpg,.jpeg"
 						bind:this={faviconInputElement}
 					/>
 					<button
-						class="btn btn-outline btn-error"
+						class="btn btn-error"
 						on:click={() => resetFavicon()}
 						on:keydown={() => resetFavicon()}>{$LL.buttons.reset()}</button
 					>
 				</div>
 			</div>
 		</div>
-		<div class="card-actions justify-end mt-6">
+		<div class="card-actions mt-6 justify-end">
 			<button class="btn btn-success" type="submit"><Fa icon={faSave} />{$LL.buttons.save()}</button
 			>
 		</div>
 	</form>
-	<div class="container mx-auto text-center mt-6">
+	<div class="container mx-auto mt-6 text-center">
 		{#if PUBLIC_VERSION === ''}
 			{$LL.settings.upsnap_version()}: (untracked)
 		{:else}

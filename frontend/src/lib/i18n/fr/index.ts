@@ -12,7 +12,8 @@ const fr = {
 		no_devices: 'Aucun appareil ici.',
 		add_first_device: 'Ajoutez votre premier appareil',
 		grant_permissions:
-			'Veuillez demander à votre administrateur les permissions aux appareils existants ou créez-en de nouveaux.'
+			'Veuillez demander à votre administrateur les permissions aux appareils existants ou créez-en de nouveaux.',
+		search_placeholder: 'Recherche de dispositifs'
 	},
 	account: {
 		page_title: 'Compte',
@@ -52,10 +53,11 @@ const fr = {
 		modal_confirm_shutdown_desc: "Veuillez confirmer l'arrêt du {device}.",
 		general: 'Général',
 		general_name: 'Nom',
-		general_name_placeholder: "Nom de l'appareil",
 		general_ip: 'IP',
 		general_mac: 'Mac',
 		general_netmask: 'Masque réseau',
+		general_description: 'Description',
+		general_description_placeholder: "Description de l'appareil",
 		general_required_field: 'champ requis',
 		ports: 'Ports',
 		ports_desc: 'UpSnap peut aussi vérifier si certains ports sont ouverts.',
@@ -65,8 +67,17 @@ const fr = {
 		link: 'Lien',
 		link_desc:
 			'Rend le nom de votre appareil cliquable, parfait pour y lier un tableau de bord par exemple.',
+		link_open: 'Ouvrir automatiquement un lien',
+		link_open_no: 'No',
+		link_open_same_tab: 'Même onglet',
+		link_open_new_tab: 'Nouvel onglet',
+		ping: 'Ping',
+		ping_desc:
+			"Vous pouvez utiliser une commande shell personnalisée pour vérifier si l'appareil est sous tension. La commande doit renvoyer un code de sortie de <span class='badge'>0</span> pour indiquer que l'appareil est sous tension, tout autre code de sortie indiquera que l'appareil est hors tension.",
+		ping_cmd: 'Commande ping personnalisée',
 		wake: 'Réveil',
 		wake_desc: 'Vous pouvez allumer cet appareil en utilisant un job cron planifié.',
+		wake_cmd: 'Commande de réveil personnalisée',
 		wake_cron: 'Réveil avec cron',
 		wake_cron_enable: 'Activer le réveil avec cron',
 		sol: 'Sleep-On-LAN',

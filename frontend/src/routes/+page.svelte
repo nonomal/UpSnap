@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import DeviceCard from '$lib/components/DeviceCard.svelte';
 	import PageLoading from '$lib/components/PageLoading.svelte';
 	import LL from '$lib/i18n/i18n-svelte';
@@ -8,117 +7,80 @@
 	import {
 		faChevronCircleLeft,
 		faChevronCircleRight,
-		faPlus
+		faMagnifyingGlass,
+		faPlus,
+		faWarning
 	} from '@fortawesome/free-solid-svg-icons';
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa';
 	import toast from 'svelte-french-toast';
 
 	let loading = true;
-	let devices = [] as Device[];
-	let devicesWithGroup: {
-		[key: string]: Device[];
-	};
-	let devicesWithoutGroups = [] as Device[];
-	let orderBy: 'name' | 'ip';
+	let devices: Device[] = [];
+	let orderBy: 'name' | 'ip' = 'name';
 	let orderExpanded = false;
-	let orderByGroups: boolean;
-	const gridClass =
-		'grid grid-flow-row-dense grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4';
+	let orderByGroups = true;
+	let searchQuery = '';
 
-	$: {
-		devicesWithoutGroups = [];
-		devicesWithoutGroups = devices.filter((dev) => dev.groups.length === 0);
-	}
+	const gridClass = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4';
 
-	$: {
-		devicesWithGroup = {};
-		devices.forEach((dev) => {
-			dev?.expand?.groups?.forEach((group: Group) => {
-				if (!devicesWithGroup[group.name]) {
-					devicesWithGroup[group.name] = [];
-				}
-				devicesWithGroup[group.name] = [...devicesWithGroup[group.name], dev];
-			});
-		});
-	}
+	const filteredDevices = () =>
+		devices.filter(
+			(dev) =>
+				dev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				dev.ip.includes(searchQuery.toLowerCase()) ||
+				dev.description.toLowerCase().includes(searchQuery.toLowerCase())
+		);
 
-	$: if (browser && orderBy !== undefined) {
-		localStorage.setItem('orderBy', orderBy);
-	}
-	$: if (browser && orderByGroups !== undefined) {
-		localStorage.setItem('orderByGroups', orderByGroups.toString());
-	}
+	const devicesWithoutGroups = () => filteredDevices().filter((dev) => dev.groups.length === 0);
+
+	const devicesWithGroup = () => {
+		return filteredDevices().reduce(
+			(groups, dev) => {
+				dev.expand?.groups?.forEach((group: Group) => {
+					groups[group.name] = [...(groups[group.name] || []), dev];
+				});
+				return groups;
+			},
+			{} as Record<string, Device[]>
+		);
+	};
 
 	function getAllDevices() {
 		$pocketbase
 			.collection('devices')
-			.getFullList(1000, { sort: 'name', expand: 'ports,groups' })
-			.then((resp) => {
-				devices = resp as Device[];
-			})
-			.catch((err) => {
-				toast.error(err.message);
-			})
-			.finally(() => {
-				loading = false;
-			});
+			.getFullList(-1, { sort: 'name', expand: 'ports,groups' })
+			.then((resp) => (devices = resp as Device[]))
+			.catch((err) => toast.error(err.message))
+			.finally(() => (loading = false));
 	}
 
 	onMount(() => {
-		// get soring from local storage
-		const lsO = localStorage.getItem('orderBy');
-		if (lsO === 'name' || lsO === 'ip') {
-			orderBy = lsO;
-		} else {
-			orderBy = 'name';
-		}
-		if (localStorage.getItem('orderByGroups') === null) {
-			orderByGroups = true;
-		} else {
-			orderByGroups = localStorage.getItem('orderByGroups') === 'true' ? true : false;
-		}
-
-		// get collections and subscribe to changes
+		orderBy = (localStorage.getItem('orderBy') as 'name' | 'ip') || 'name';
+		orderByGroups = localStorage.getItem('orderByGroups') !== 'false';
 		getAllDevices();
-
-		$pocketbase.collection('devices').subscribe('*', () => {
-			getAllDevices();
-		});
-
-		$pocketbase.collection('ports').subscribe('*', () => {
-			getAllDevices();
-		});
-
-		$pocketbase.collection('permissions').subscribe('*', () => {
-			getAllDevices();
-		});
+		['devices', 'ports', 'permissions'].forEach((collection) =>
+			$pocketbase.collection(collection).subscribe('*', getAllDevices)
+		);
 	});
 </script>
 
 {#if loading}
 	<PageLoading />
 {:else if devices.length > 0}
-	<div class="flex justify-end">
-		<div class="join mb-4">
+	<div class="mb-4 flex flex-col justify-between gap-4 md:flex-row">
+		<label class="input max-md:w-full">
+			<Fa icon={faMagnifyingGlass} size="sm" />
+			<input type="search" placeholder={$LL.home.search_placeholder()} bind:value={searchQuery} />
+		</label>
+		<div class="join ms-auto">
 			{#if orderExpanded}
-				<div class="join-item">
-					<div class="join">
-						<button
-							class="join-item btn"
-							type="button"
-							on:click={() => (orderByGroups = !orderByGroups)}
-							>{$LL.home.order_groups()}
-							<input
-								type="checkbox"
-								class="checkbox checked:checkbox-primary"
-								checked={orderByGroups}
-							/>
-						</button>
-					</div>
-				</div>
+				<button class="btn join-item" on:click={() => (orderByGroups = !orderByGroups)}>
+					{$LL.home.order_groups()}
+					<input type="checkbox" class="checkbox" checked={orderByGroups} />
+				</button>
 				<input
-					class="join-item btn"
+					class="btn join-item"
 					type="radio"
 					name="order"
 					aria-label={$LL.home.order_name()}
@@ -126,7 +88,7 @@
 					value="name"
 				/>
 				<input
-					class="join-item btn"
+					class="btn join-item"
 					type="radio"
 					name="order"
 					aria-label={$LL.home.order_ip()}
@@ -134,59 +96,60 @@
 					value="ip"
 				/>
 			{/if}
-			<div class="tooltip" data-tip={$LL.home.order_tooltip()}>
-				<button class="join-item btn" on:click={() => (orderExpanded = !orderExpanded)}>
-					{#if orderExpanded}
-						<Fa icon={faChevronCircleRight} size="lg" />
-					{:else}
-						<Fa icon={faChevronCircleLeft} size="lg" />
-					{/if}
-				</button>
-			</div>
+			<button
+				class="btn join-item tooltip {orderExpanded ? '' : 'rounded-field'}"
+				data-tip={$LL.home.order_tooltip()}
+				on:click={() => (orderExpanded = !orderExpanded)}
+			>
+				<Fa icon={orderExpanded ? faChevronCircleRight : faChevronCircleLeft} size="lg" />
+			</button>
 		</div>
 	</div>
+
 	{#if orderByGroups}
 		<div class="space-y-6">
-			{#if devicesWithoutGroups.length > 0}
+			{#if devicesWithoutGroups().length > 0}
 				<div class={gridClass}>
-					{#each devicesWithoutGroups.sort( (a, b) => a[orderBy].localeCompare( b[orderBy], undefined, { numeric: true, sensitivity: 'base' } ) ) as device}
+					{#each devicesWithoutGroups().sort( (a, b) => a[orderBy].localeCompare(b[orderBy]) ) as device}
 						<DeviceCard {device} />
 					{/each}
 				</div>
 			{/if}
-			{#if Object.keys(devicesWithGroup).length > 0}
-				{#each Object.keys(devicesWithGroup).sort( (a, b) => a.localeCompare( b, undefined, { numeric: true, sensitivity: 'base' } ) ) as group}
-					<div>
-						<h1 class="text-2xl font-bold mb-3">{group}</h1>
-						<div class={gridClass}>
-							{#each devicesWithGroup[group].sort( (a, b) => a[orderBy].localeCompare( b[orderBy], undefined, { numeric: true, sensitivity: 'base' } ) ) as device}
-								<DeviceCard {device} />
-							{/each}
-						</div>
+			{#each Object.entries(devicesWithGroup()).sort( ([a], [b]) => a.localeCompare(b) ) as [group, groupDevices]}
+				<div>
+					<h1 class="mb-3 text-2xl font-bold">{group}</h1>
+					<div class={gridClass}>
+						{#each groupDevices.sort((a, b) => a[orderBy].localeCompare(b[orderBy])) as device}
+							<DeviceCard {device} />
+						{/each}
 					</div>
-				{/each}
-			{/if}
+				</div>
+			{/each}
 		</div>
 	{:else}
 		<div class={gridClass}>
-			{#each devices.sort( (a, b) => a[orderBy].localeCompare( b[orderBy], undefined, { numeric: true, sensitivity: 'base' } ) ) as device}
+			{#each filteredDevices().sort((a, b) => a[orderBy].localeCompare(b[orderBy])) as device}
 				<DeviceCard {device} />
 			{/each}
 		</div>
 	{/if}
 {:else}
-	<div class="container text-center">
-		<p>{$LL.home.no_devices()}</p>
-		{#if $pocketbase.authStore.isAdmin || $permission.create}
-			<p>
-				<a href="/device/new" class="btn btn-ghost"
-					><Fa icon={faPlus} class="ms-2" />{$LL.home.add_first_device()}
-				</a>
-			</p>
-		{:else}
-			<p>
-				{$LL.home.grant_permissions()}
-			</p>
-		{/if}
+	<div class="flex justify-center">
+		<div role="alert" class="alert alert-horizontal w-fit">
+			<Fa icon={faWarning} size="lg" />
+			{#if $pocketbase.authStore.isSuperuser || $permission.create}
+				<div>
+					<h3 class="font-bold">{$LL.home.no_devices()}</h3>
+					<div class="text-xs">{$LL.home.add_first_device()}</div>
+				</div>
+				<a href="/device/new" class="btn btn-sm"
+					><Fa icon={faPlus} />{$LL.home.add_first_device()}</a
+				>
+			{:else}
+				<span>
+					{$LL.home.grant_permissions()}
+				</span>
+			{/if}
+		</div>
 	</div>
 {/if}

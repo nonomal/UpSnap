@@ -10,7 +10,8 @@ const en = {
 		no_devices: 'No devices here.',
 		add_first_device: 'Add your first device',
 		grant_permissions:
-			'Please ask the admin to grant you permissions to existing devices or to create new ones.'
+			'Please ask the admin to grant you permissions to existing devices or to create new ones.',
+		search_placeholder: 'Search for devices'
 	},
 	account: {
 		page_title: 'Account',
@@ -49,10 +50,11 @@ const en = {
 		modal_confirm_shutdown_desc: 'Please confirm to shutdown {device}.',
 		general: 'General',
 		general_name: 'Name',
-		general_name_placeholder: 'Device name',
 		general_ip: 'IP',
 		general_mac: 'Mac',
 		general_netmask: 'Netmask',
+		general_description: 'Description',
+		general_description_placeholder: 'Some description of the device',
 		general_required_field: 'required field',
 		ports: 'Ports',
 		ports_desc: 'UpSnap can also check if given ports are open.',
@@ -62,8 +64,17 @@ const en = {
 		link: 'Link',
 		link_desc:
 			'Makes your device name a clickable link, perfect for linking a dashboard for example.',
+		link_open: 'Automatically open link',
+		link_open_no: 'No',
+		link_open_same_tab: 'Same tab',
+		link_open_new_tab: 'New tab',
+		ping: 'Ping',
+		ping_desc:
+			'You can use a custom shell command to see if the device is powered on. The command should return an exit code of <span class="badge">0</span> to indicate that the device is powered on, any other exit code will mark the device as powered off.',
+		ping_cmd: 'Custom ping command',
 		wake: 'Wake',
 		wake_desc: 'You can power this device using a scheduled cron job.',
+		wake_cmd: 'Custom wake command',
 		wake_cron: 'Wake cron',
 		wake_cron_enable: 'Enable wake cron',
 		sol: 'Sleep-On-LAN',
@@ -80,7 +91,7 @@ const en = {
 		sol_password: 'SOL Password',
 		shutdown: 'Shutdown',
 		shutdown_desc:
-			'This <strong>shell command</strong> will run inside your container (if you use docker) or on your host (if you use the binary). To verify that works you can run the command inside the container or on your host shell first. Common commands are <span class="badge">net rpc</span> for windows, <span class="badge">sshpass</span> for linux or <span class="badge">curl</span> in general to make web requests.',
+			'This <strong>shell command</strong> will run inside your container (if you use docker) or on your host (if you use the binary). To verify that it works, you can run the command inside the container or on your host shell first. Common commands are <span class="badge">net rpc</span> for windows, <span class="badge">sshpass</span> for linux or <span class="badge">curl</span> in general to make web requests.',
 		shutdown_examples: 'Examples:',
 		shutdown_examples_windows: 'Shutdown remote windows machine:',
 		shutdown_examples_linux: 'Shutdown remote linux machine:',

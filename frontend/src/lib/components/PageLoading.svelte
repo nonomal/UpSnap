@@ -1,3 +1,3 @@
-<div class="container max-w-lg mx-auto text-center">
-	<span class="loading loading-dots loading-lg" />
+<div class="container mx-auto max-w-lg text-center">
+	<span class="loading loading-dots loading-lg"></span>
 </div>

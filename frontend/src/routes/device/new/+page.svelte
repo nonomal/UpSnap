@@ -18,7 +18,7 @@
 	} as Device;
 
 	$: if (Object.hasOwn($permission, 'create')) {
-		if (!$pocketbase.authStore.isAdmin && !$permission.create) {
+		if (!$pocketbase.authStore.isSuperuser && !$permission.create) {
 			toast($LL.toasts.no_permission({ url: $page.url.pathname }), {
 				icon: '⛔'
 			});
@@ -37,19 +37,19 @@
 			name: 'scan',
 			ll_name: $LL.device.tabs[1](),
 			icon: faBinoculars,
-			show: $pocketbase.authStore.isAdmin
+			show: $pocketbase.authStore.isSuperuser
 		}
 	];
 	let activeTab = 'manual';
 </script>
 
-<h1 class="text-3xl font-bold mb-8">{$LL.device.page_title()}</h1>
-<div class="flex justify-center mb-6">
-	<ul class="menu menu-horizontal bg-base-300 rounded-box gap-1">
+<h1 class="mb-8 text-3xl font-bold">{$LL.device.page_title()}</h1>
+<div class="mb-6 flex justify-center">
+	<ul class="menu menu-horizontal rounded-box bg-base-200 gap-1">
 		{#each tabs as tab}
 			{#if tab.show}
 				<li>
-					<button class:active={activeTab === tab.name} on:click={() => (activeTab = tab.name)}
+					<button class:menu-active={activeTab === tab.name} on:click={() => (activeTab = tab.name)}
 						>{tab.ll_name} <Fa icon={tab.icon} class="ms-2" /></button
 					>
 				</li>

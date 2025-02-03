@@ -14,12 +14,23 @@ export type Locales =
 	| 'de-DE'
 	| 'en'
 	| 'en-US'
+	| 'es'
+	| 'es-ES'
 	| 'fr'
 	| 'fr-FR'
+	| 'it'
+	| 'it-IT'
+	| 'ja'
+	| 'ja-JP'
+	| 'nl'
+	| 'nl-NL'
+	| 'pl'
+	| 'pl-PL'
 	| 'pt'
 	| 'pt-PT'
 	| 'zh'
-	| 'zh-CN';
+	| 'zh-CN'
+	| 'zh-TW';
 
 export type Translation = RootTranslation;
 
@@ -59,6 +70,10 @@ type RootTranslation = {
 		 * P​l​e​a​s​e​ ​a​s​k​ ​t​h​e​ ​a​d​m​i​n​ ​t​o​ ​g​r​a​n​t​ ​y​o​u​ ​p​e​r​m​i​s​s​i​o​n​s​ ​t​o​ ​e​x​i​s​t​i​n​g​ ​d​e​v​i​c​e​s​ ​o​r​ ​t​o​ ​c​r​e​a​t​e​ ​n​e​w​ ​o​n​e​s​.
 		 */
 		grant_permissions: string;
+		/**
+		 * S​e​a​r​c​h​ ​f​o​r​ ​d​e​v​i​c​e​s
+		 */
+		search_placeholder: string;
 	};
 	account: {
 		/**
@@ -210,10 +225,6 @@ type RootTranslation = {
 		 */
 		general_name: string;
 		/**
-		 * D​e​v​i​c​e​ ​n​a​m​e
-		 */
-		general_name_placeholder: string;
-		/**
 		 * I​P
 		 */
 		general_ip: string;
@@ -225,6 +236,14 @@ type RootTranslation = {
 		 * N​e​t​m​a​s​k
 		 */
 		general_netmask: string;
+		/**
+		 * D​e​s​c​r​i​p​t​i​o​n
+		 */
+		general_description: string;
+		/**
+		 * S​o​m​e​ ​d​e​s​c​r​i​p​t​i​o​n​ ​o​f​ ​t​h​e​ ​d​e​v​i​c​e
+		 */
+		general_description_placeholder: string;
 		/**
 		 * r​e​q​u​i​r​e​d​ ​f​i​e​l​d
 		 */
@@ -258,6 +277,34 @@ type RootTranslation = {
 		 */
 		link_desc: string;
 		/**
+		 * A​u​t​o​m​a​t​i​c​a​l​l​y​ ​o​p​e​n​ ​l​i​n​k
+		 */
+		link_open: string;
+		/**
+		 * N​o
+		 */
+		link_open_no: string;
+		/**
+		 * S​a​m​e​ ​t​a​b
+		 */
+		link_open_same_tab: string;
+		/**
+		 * N​e​w​ ​t​a​b
+		 */
+		link_open_new_tab: string;
+		/**
+		 * P​i​n​g
+		 */
+		ping: string;
+		/**
+		 * Y​o​u​ ​c​a​n​ ​u​s​e​ ​a​ ​c​u​s​t​o​m​ ​s​h​e​l​l​ ​c​o​m​m​a​n​d​ ​t​o​ ​s​e​e​ ​i​f​ ​t​h​e​ ​d​e​v​i​c​e​ ​i​s​ ​p​o​w​e​r​e​d​ ​o​n​.​ ​T​h​e​ ​c​o​m​m​a​n​d​ ​s​h​o​u​l​d​ ​r​e​t​u​r​n​ ​a​n​ ​e​x​i​t​ ​c​o​d​e​ ​o​f​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​0​<​/​s​p​a​n​>​ ​t​o​ ​i​n​d​i​c​a​t​e​ ​t​h​a​t​ ​t​h​e​ ​d​e​v​i​c​e​ ​i​s​ ​p​o​w​e​r​e​d​ ​o​n​,​ ​a​n​y​ ​o​t​h​e​r​ ​e​x​i​t​ ​c​o​d​e​ ​w​i​l​l​ ​m​a​r​k​ ​t​h​e​ ​d​e​v​i​c​e​ ​a​s​ ​p​o​w​e​r​e​d​ ​o​f​f​.
+		 */
+		ping_desc: string;
+		/**
+		 * C​u​s​t​o​m​ ​p​i​n​g​ ​c​o​m​m​a​n​d
+		 */
+		ping_cmd: string;
+		/**
 		 * W​a​k​e
 		 */
 		wake: string;
@@ -265,6 +312,10 @@ type RootTranslation = {
 		 * Y​o​u​ ​c​a​n​ ​p​o​w​e​r​ ​t​h​i​s​ ​d​e​v​i​c​e​ ​u​s​i​n​g​ ​a​ ​s​c​h​e​d​u​l​e​d​ ​c​r​o​n​ ​j​o​b​.
 		 */
 		wake_desc: string;
+		/**
+		 * C​u​s​t​o​m​ ​w​a​k​e​ ​c​o​m​m​a​n​d
+		 */
+		wake_cmd: string;
 		/**
 		 * W​a​k​e​ ​c​r​o​n
 		 */
@@ -314,7 +365,7 @@ type RootTranslation = {
 		 */
 		shutdown: string;
 		/**
-		 * T​h​i​s​ ​<​s​t​r​o​n​g​>​s​h​e​l​l​ ​c​o​m​m​a​n​d​<​/​s​t​r​o​n​g​>​ ​w​i​l​l​ ​r​u​n​ ​i​n​s​i​d​e​ ​y​o​u​r​ ​c​o​n​t​a​i​n​e​r​ ​(​i​f​ ​y​o​u​ ​u​s​e​ ​d​o​c​k​e​r​)​ ​o​r​ ​o​n​ ​y​o​u​r​ ​h​o​s​t​ ​(​i​f​ ​y​o​u​ ​u​s​e​ ​t​h​e​ ​b​i​n​a​r​y​)​.​ ​T​o​ ​v​e​r​i​f​y​ ​t​h​a​t​ ​w​o​r​k​s​ ​y​o​u​ ​c​a​n​ ​r​u​n​ ​t​h​e​ ​c​o​m​m​a​n​d​ ​i​n​s​i​d​e​ ​t​h​e​ ​c​o​n​t​a​i​n​e​r​ ​o​r​ ​o​n​ ​y​o​u​r​ ​h​o​s​t​ ​s​h​e​l​l​ ​f​i​r​s​t​.​ ​C​o​m​m​o​n​ ​c​o​m​m​a​n​d​s​ ​a​r​e​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​n​e​t​ ​r​p​c​<​/​s​p​a​n​>​ ​f​o​r​ ​w​i​n​d​o​w​s​,​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​s​s​h​p​a​s​s​<​/​s​p​a​n​>​ ​f​o​r​ ​l​i​n​u​x​ ​o​r​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​c​u​r​l​<​/​s​p​a​n​>​ ​i​n​ ​g​e​n​e​r​a​l​ ​t​o​ ​m​a​k​e​ ​w​e​b​ ​r​e​q​u​e​s​t​s​.
+		 * T​h​i​s​ ​<​s​t​r​o​n​g​>​s​h​e​l​l​ ​c​o​m​m​a​n​d​<​/​s​t​r​o​n​g​>​ ​w​i​l​l​ ​r​u​n​ ​i​n​s​i​d​e​ ​y​o​u​r​ ​c​o​n​t​a​i​n​e​r​ ​(​i​f​ ​y​o​u​ ​u​s​e​ ​d​o​c​k​e​r​)​ ​o​r​ ​o​n​ ​y​o​u​r​ ​h​o​s​t​ ​(​i​f​ ​y​o​u​ ​u​s​e​ ​t​h​e​ ​b​i​n​a​r​y​)​.​ ​T​o​ ​v​e​r​i​f​y​ ​t​h​a​t​ ​i​t​ ​w​o​r​k​s​,​ ​y​o​u​ ​c​a​n​ ​r​u​n​ ​t​h​e​ ​c​o​m​m​a​n​d​ ​i​n​s​i​d​e​ ​t​h​e​ ​c​o​n​t​a​i​n​e​r​ ​o​r​ ​o​n​ ​y​o​u​r​ ​h​o​s​t​ ​s​h​e​l​l​ ​f​i​r​s​t​.​ ​C​o​m​m​o​n​ ​c​o​m​m​a​n​d​s​ ​a​r​e​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​n​e​t​ ​r​p​c​<​/​s​p​a​n​>​ ​f​o​r​ ​w​i​n​d​o​w​s​,​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​s​s​h​p​a​s​s​<​/​s​p​a​n​>​ ​f​o​r​ ​l​i​n​u​x​ ​o​r​ ​<​s​p​a​n​ ​c​l​a​s​s​=​"​b​a​d​g​e​"​>​c​u​r​l​<​/​s​p​a​n​>​ ​i​n​ ​g​e​n​e​r​a​l​ ​t​o​ ​m​a​k​e​ ​w​e​b​ ​r​e​q​u​e​s​t​s​.
 		 */
 		shutdown_desc: string;
 		/**
@@ -818,6 +869,10 @@ export type TranslationFunctions = {
 		 * Please ask the admin to grant you permissions to existing devices or to create new ones.
 		 */
 		grant_permissions: () => LocalizedString;
+		/**
+		 * Search for devices
+		 */
+		search_placeholder: () => LocalizedString;
 	};
 	account: {
 		/**
@@ -965,10 +1020,6 @@ export type TranslationFunctions = {
 		 */
 		general_name: () => LocalizedString;
 		/**
-		 * Device name
-		 */
-		general_name_placeholder: () => LocalizedString;
-		/**
 		 * IP
 		 */
 		general_ip: () => LocalizedString;
@@ -980,6 +1031,14 @@ export type TranslationFunctions = {
 		 * Netmask
 		 */
 		general_netmask: () => LocalizedString;
+		/**
+		 * Description
+		 */
+		general_description: () => LocalizedString;
+		/**
+		 * Some description of the device
+		 */
+		general_description_placeholder: () => LocalizedString;
 		/**
 		 * required field
 		 */
@@ -1013,6 +1072,34 @@ export type TranslationFunctions = {
 		 */
 		link_desc: () => LocalizedString;
 		/**
+		 * Automatically open link
+		 */
+		link_open: () => LocalizedString;
+		/**
+		 * No
+		 */
+		link_open_no: () => LocalizedString;
+		/**
+		 * Same tab
+		 */
+		link_open_same_tab: () => LocalizedString;
+		/**
+		 * New tab
+		 */
+		link_open_new_tab: () => LocalizedString;
+		/**
+		 * Ping
+		 */
+		ping: () => LocalizedString;
+		/**
+		 * You can use a custom shell command to see if the device is powered on. The command should return an exit code of <span class="badge">0</span> to indicate that the device is powered on, any other exit code will mark the device as powered off.
+		 */
+		ping_desc: () => LocalizedString;
+		/**
+		 * Custom ping command
+		 */
+		ping_cmd: () => LocalizedString;
+		/**
 		 * Wake
 		 */
 		wake: () => LocalizedString;
@@ -1020,6 +1107,10 @@ export type TranslationFunctions = {
 		 * You can power this device using a scheduled cron job.
 		 */
 		wake_desc: () => LocalizedString;
+		/**
+		 * Custom wake command
+		 */
+		wake_cmd: () => LocalizedString;
 		/**
 		 * Wake cron
 		 */
@@ -1069,7 +1160,7 @@ export type TranslationFunctions = {
 		 */
 		shutdown: () => LocalizedString;
 		/**
-		 * This <strong>shell command</strong> will run inside your container (if you use docker) or on your host (if you use the binary). To verify that works you can run the command inside the container or on your host shell first. Common commands are <span class="badge">net rpc</span> for windows, <span class="badge">sshpass</span> for linux or <span class="badge">curl</span> in general to make web requests.
+		 * This <strong>shell command</strong> will run inside your container (if you use docker) or on your host (if you use the binary). To verify that it works, you can run the command inside the container or on your host shell first. Common commands are <span class="badge">net rpc</span> for windows, <span class="badge">sshpass</span> for linux or <span class="badge">curl</span> in general to make web requests.
 		 */
 		shutdown_desc: () => LocalizedString;
 		/**

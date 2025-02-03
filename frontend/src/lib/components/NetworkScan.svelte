@@ -28,8 +28,9 @@
 				.collection('settings_private')
 				.getFirstListItem('')
 				.then((res) => {
-					settingsPriv.set(res as SettingsPrivate);
-					scanRange = $settingsPriv.scan_range;
+					const settings = res as SettingsPrivate;
+					settingsPriv.set(settings);
+					scanRange = settings.scan_range;
 				})
 				.catch((err) => {
 					toast.error(err.message);
@@ -116,26 +117,26 @@
 </script>
 
 {#if $settingsPriv}
-	<div class="card w-full bg-base-300 shadow-xl mt-6">
+	<div class="card bg-base-200 mt-6 w-full shadow-sm">
 		<div class="card-body">
 			<h2 class="card-title">{$LL.device.tabs[1]()}</h2>
 			<p class="my-2">
 				{$LL.device.network_scan_desc()}
 			</p>
-			<div class="flex flex-row flex-wrap gap-4 items-end">
+			<div class="flex flex-row flex-wrap items-end gap-4">
 				<form on:submit|preventDefault={saveSettings}>
 					<label class="label" for="scan-range">
-						<span class="label-text">{$LL.device.network_scan_ip_range()}</span>
+						<span>{$LL.device.network_scan_ip_range()}</span>
 					</label>
 					<div class="join max-w-xs">
 						<input
 							id="scan-range"
-							class="input input-bordered join-item w-full"
+							class="input join-item w-full"
 							type="text"
 							placeholder="192.168.1.0/24"
 							bind:value={scanRange}
 						/>
-						<button class="btn btn-primary join-item" type="submit">{$LL.buttons.save()}</button>
+						<button class="btn btn-neutral join-item" type="submit">{$LL.buttons.save()}</button>
 					</div>
 				</form>
 				<div>
@@ -152,7 +153,7 @@
 							</button>
 						{:else if scanRunning}
 							<button class="btn no-animation">
-								<span class="loading loading-spinner" />
+								<span class="loading loading-spinner"></span>
 								{$LL.device.network_scan_running()}
 							</button>
 						{:else}
@@ -166,7 +167,7 @@
 			</div>
 			{#if scanResponse.devices?.length > 0}
 				{#each scanResponse.devices.sort( (a, b) => a.ip.localeCompare( b.ip, undefined, { numeric: true } ) ) as device, index}
-					<div class="collapse collapse-arrow bg-base-200">
+					<div class="collapse-arrow bg-base-100 collapse">
 						<input type="radio" name="scanned-devices" checked={index === 0} />
 						<div class="collapse-title font-bold">
 							{device.name} <span class="badge">{device.ip}</span>
@@ -192,7 +193,7 @@
 								</div>
 								<div class="ms-auto">
 									<button
-										class="btn btn-sm btn-success"
+										class="btn btn-success btn-sm"
 										on:click={(e) => {
 											addSingle(device);
 											e.currentTarget.disabled = true;
@@ -204,31 +205,35 @@
 					</div>
 				{/each}
 				<h2 class="card-title mt-4">{$LL.device.network_scan_add_all()}</h2>
-				<div class="form-control max-w-fit">
+				<div class="max-w-fit">
 					<label class="label cursor-pointer">
 						<input type="checkbox" class="checkbox" bind:checked={replaceNetmaskCheckbox} />
-						<span class="label-text ms-2">{$LL.device.network_scan_replace_netmask()}</span>
+						<span class="ms-2 text-wrap break-words"
+							>{$LL.device.network_scan_replace_netmask()}</span
+						>
 					</label>
 				</div>
 				{#if replaceNetmaskCheckbox}
-					<div class="form-control max-w-fit">
+					<div class="max-w-fit">
 						<label class="label cursor-pointer" for="replaceNetmaskInput">
-							<span class="label-text ms-2">{$LL.device.network_scan_new_netmask()}</span>
+							<span class="ms-2">{$LL.device.network_scan_new_netmask()}</span>
 						</label>
 						<input
 							id="replaceNetmaskInput"
-							class="input input-bordered"
+							class="input"
 							type="text"
-							placeholder="255.255.0.0"
+							placeholder="255.255.255.0"
 							bind:value={replaceNetmask}
 						/>
 					</div>
 				{/if}
 				{#if scanResponse.devices.find((dev) => dev.name === 'Unknown')}
-					<div class="form-control max-w-fit">
+					<div class="max-w-fit">
 						<label class="label cursor-pointer">
 							<input type="checkbox" class="checkbox" bind:checked={addAllCheckbox} />
-							<span class="label-text ms-2">{$LL.device.network_scan_include_unknown()}</span>
+							<span class="ms-2 text-wrap break-words"
+								>{$LL.device.network_scan_include_unknown()}</span
+							>
 						</label>
 						{#if addAllCheckbox}
 							<button
@@ -253,7 +258,7 @@
 						{/if}
 					</div>
 				{:else}
-					<div class="form-control max-w-fit">
+					<div class="max-w-fit">
 						<button
 							class="btn btn-success"
 							on:click={() => addAll()}

@@ -51,17 +51,20 @@
 		'winter',
 		'dim',
 		'nord',
-		'sunset'
+		'sunset',
+		'caramellatte',
+		'abyss',
+		'silk'
 	];
 	let activeTheme: string | null = '';
-	let avatar = $pocketbase.authStore.model?.avatar;
+	$: avatar = $pocketbase.authStore.record?.avatar;
 
 	onMount(() => {
 		themeChange(false);
 		activeTheme = document.documentElement.getAttribute('data-theme');
 
 		$pocketbase.authStore.onChange(() => {
-			avatar = $pocketbase.authStore.model?.avatar;
+			avatar = $pocketbase.authStore.record?.avatar;
 		});
 	});
 
@@ -99,7 +102,7 @@
 			<ul
 				id="mobile-menu"
 				tabindex="-1"
-				class="menu dropdown-content mt-3 z-[1] p-2 gap-1 shadow bg-base-300 rounded-box w-max"
+				class="menu dropdown-content rounded-box bg-base-200 z-[1] mt-3 w-max gap-1 p-2 shadow-sm"
 			>
 				{#if $settingsPub?.website_title}
 					<div class="menu-title">
@@ -111,7 +114,7 @@
 						><Fa icon={faHome} />{$LL.home.page_title()}</a
 					>
 				</li>
-				{#if $pocketbase.authStore.isAdmin}
+				{#if $pocketbase.authStore.isSuperuser}
 					<li>
 						<a
 							href="/users"
@@ -138,35 +141,24 @@
 						<ul>
 							<div class="h-fit max-h-72 overflow-scroll">
 								{#each availableThemes as theme}
-									<li>
+									<li class="w-full">
 										<button
-											class="outline-base-content overflow-hidden rounded-lg text-left"
+											class="gap-3 px-2"
 											data-set-theme={theme}
 											on:click={() => (activeTheme = theme)}
 											on:keydown={() => (activeTheme = theme)}
 										>
 											<div
 												data-theme={theme}
-												class="bg-base-100 text-base-content rounded w-full cursor-pointer font-sans"
+												class="bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 rounded-md p-1 shadow-sm"
 											>
-												<div class="grid grid-cols-5 grid-rows-3">
-													<div
-														class="col-span-5 row-span-3 row-start-1 flex items-center gap-2 px-4 py-3"
-													>
-														<Fa
-															icon={faCheck}
-															class={activeTheme === theme ? 'visible' : 'invisible'}
-														/>
-														<div class="flex-grow text-sm">{theme}</div>
-														<div class="flex h-full flex-shrink-0 flex-wrap gap-1">
-															<div class="bg-primary w-2 rounded" />
-															<div class="bg-secondary w-2 rounded" />
-															<div class="bg-accent w-2 rounded" />
-															<div class="bg-neutral w-2 rounded" />
-														</div>
-													</div>
-												</div>
+												<div class="bg-base-content size-1 rounded-full"></div>
+												<div class="bg-primary size-1 rounded-full"></div>
+												<div class="bg-secondary size-1 rounded-full"></div>
+												<div class="bg-accent size-1 rounded-full"></div>
 											</div>
+											<div class="truncate">{theme}</div>
+											<Fa icon={faCheck} class={activeTheme === theme ? 'visible' : 'invisible'} />
 										</button>
 									</li>
 								{/each}
@@ -176,7 +168,7 @@
 				</li>
 			</ul>
 		</div>
-		<a class="btn btn-ghost normal-case text-xl px-2" href="/">
+		<a class="btn btn-ghost h-full border-0 px-2 text-xl" href="/">
 			<img
 				src={$settingsPub?.id && $settingsPub?.favicon
 					? `${backendUrl}api/files/settings_public/${$settingsPub?.id}/${$settingsPub?.favicon}`
@@ -191,87 +183,84 @@
 		{#if $settingsPub?.website_title}
 			<span class="px-2">{$settingsPub?.website_title}</span>
 		{/if}
-		<ul class="menu menu-horizontal px-1 gap-1">
-			<li>
-				<a href="/" class="p-2" class:active={$page.url.pathname === '/'}
+		<ul class="menu menu-horizontal h-full gap-1 px-1">
+			<li class="h-full">
+				<a href="/" class="p-2" class:menu-active={$page.url.pathname === '/'}
 					><Fa icon={faHome} />{$LL.home.page_title()}</a
 				>
 			</li>
-			{#if $pocketbase.authStore.isAdmin}
-				<li>
-					<a href="/users" class="p-2" class:active={$page.url.pathname.startsWith('/users')}
+			{#if $pocketbase.authStore.isSuperuser}
+				<li class="h-full">
+					<a href="/users" class="p-2" class:menu-active={$page.url.pathname.startsWith('/users')}
 						><Fa icon={faUsersGear} />{$LL.users.page_title()}</a
 					>
 				</li>
-				<li>
-					<a href="/settings/" class="p-2" class:active={$page.url.pathname.startsWith('/settings')}
+				<li class="h-full">
+					<a
+						href="/settings/"
+						class="p-2"
+						class:menu-active={$page.url.pathname.startsWith('/settings')}
 						><Fa icon={faCog} />{$LL.settings.page_title()}</a
 					>
 				</li>
 			{/if}
-		</ul>
-		<div class="dropdown dropdown-end">
-			<div tabindex="-1" class="btn normal-case btn-ghost">
-				<Fa icon={faSwatchbook} />
-				<span class="font-normal">{$LL.navbar.theme()}</span>
-				<Fa icon={faChevronDown} />
-			</div>
-			<div
-				class="dropdown-content bg-base-200 text-base-content rounded-box h-fit max-h-96 w-56 overflow-y-auto shadow mt-3 z-[1]"
-			>
-				<div class="grid grid-cols-1 gap-3 p-3" tabindex="-1">
-					{#each availableThemes as theme}
-						<button
-							class="outline-base-content overflow-hidden rounded-lg text-left"
-							data-set-theme={theme}
-							on:click={() => (activeTheme = theme)}
-							on:keydown={() => (activeTheme = theme)}
-						>
-							<div
-								data-theme={theme}
-								class="bg-base-100 text-base-content w-full cursor-pointer font-sans"
-							>
-								<div class="grid grid-cols-5 grid-rows-3">
-									<div class="col-span-5 row-span-3 row-start-1 flex items-center gap-2 px-4 py-3">
-										<Fa icon={faCheck} class={activeTheme === theme ? 'visible' : 'invisible'} />
-										<div class="flex-grow text-sm">{theme}</div>
-										<div class="flex h-full flex-shrink-0 flex-wrap gap-1">
-											<div class="bg-primary w-2 rounded" />
-											<div class="bg-secondary w-2 rounded" />
-											<div class="bg-accent w-2 rounded" />
-											<div class="bg-neutral w-2 rounded" />
-										</div>
+			<div class="dropdown dropdown-end">
+				<button class="btn btn-ghost hover:bg-base-content/10 h-full border-0 p-2">
+					<Fa icon={faSwatchbook} />
+					<span class="font-normal">{$LL.navbar.theme()}</span>
+					<Fa icon={faChevronDown} />
+				</button>
+				<div class="dropdown-content bg-base-200 rounded-box z-1 mt-3 w-52 shadow-sm">
+					<ul class="menu menu-horizontal h-fit max-h-96 overflow-y-auto">
+						{#each availableThemes as theme}
+							<li class="w-full">
+								<button
+									class="gap-3 px-2"
+									data-set-theme={theme}
+									on:click={() => (activeTheme = theme)}
+									on:keydown={() => (activeTheme = theme)}
+								>
+									<div
+										data-theme={theme}
+										class="bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 rounded-md p-1 shadow-sm"
+									>
+										<div class="bg-base-content size-1 rounded-full"></div>
+										<div class="bg-primary size-1 rounded-full"></div>
+										<div class="bg-secondary size-1 rounded-full"></div>
+										<div class="bg-accent size-1 rounded-full"></div>
 									</div>
-								</div>
-							</div>
-						</button>
-					{/each}
+									<div class="truncate">{theme}</div>
+									<Fa icon={faCheck} class={activeTheme === theme ? 'visible' : 'invisible'} />
+								</button>
+							</li>
+						{/each}
+					</ul>
 				</div>
 			</div>
-		</div>
+		</ul>
 	</div>
-	<div class="justify-end ms-auto">
-		{#if $pocketbase.authStore?.model !== null}
-			{#if $pocketbase.authStore.isAdmin || $permission.create}
+	<div class="ms-auto justify-end">
+		{#if $pocketbase.authStore?.record !== null}
+			{#if $pocketbase.authStore.isSuperuser || $permission.create}
 				<a class="btn btn-success me-4" href="/device/new">
 					<Fa icon={faPlus} />
 					{$LL.navbar.new()}
 				</a>
 			{/if}
 			<div class="dropdown dropdown-end">
-				<label tabindex="-1" class="btn btn-ghost btn-circle avatar" for="avatar">
+				<label tabindex="-1" class="avatar btn btn-circle btn-ghost" for="avatar">
 					<div class="w-10 rounded-full" id="avatar">
-						<img src="{backendUrl}_/images/avatars/avatar{avatar}.svg" alt="Avatar {avatar}" />
+						<img src="/avatars/avatar{avatar}.svg" alt="Avatar {avatar}" />
 					</div>
 				</label>
 				<ul
 					tabindex="-1"
-					class="menu dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 rounded-box"
+					class="menu dropdown-content rounded-box bg-base-200 z-[1] mt-3 w-52 p-2 shadow"
 				>
 					<li class="menu-title">
-						{$pocketbase.authStore.isAdmin
-							? $pocketbase.authStore.model.email
-							: $pocketbase.authStore.model.username}
+						{$pocketbase.authStore.isSuperuser
+							? $pocketbase.authStore.record?.email
+							: $pocketbase.authStore.record?.username}
 					</li>
 					<li>
 						<a href="/account"><Fa icon={faUserGear} />{$LL.navbar.edit_account()}</a>

@@ -2,7 +2,7 @@
 	import LL from '$lib/i18n/i18n-svelte';
 	import { backendUrl, permission, pocketbase } from '$lib/stores/pocketbase';
 	import type { Device } from '$lib/types/device';
-	import { faCircle, faPowerOff } from '@fortawesome/free-solid-svg-icons';
+	import { faPowerOff } from '@fortawesome/free-solid-svg-icons';
 	import Fa from 'svelte-fa';
 	import toast from 'svelte-french-toast';
 
@@ -27,7 +27,7 @@
 		if (device.shutdown_cmd === '') {
 			disabled = true;
 			hoverText = $LL.device.card_nic_tooltip_shutdown_no_cmd();
-		} else if (!$pocketbase.authStore.isAdmin && !$permission.power?.includes(device.id)) {
+		} else if (!$pocketbase.authStore.isSuperuser && !$permission.power?.includes(device.id)) {
 			disabled = true;
 			hoverText = $LL.device.card_nic_tooltip_shutdown_no_permission();
 		} else {
@@ -35,7 +35,7 @@
 			hoverText = $LL.device.card_nic_tooltip_shutdown();
 		}
 	} else if (device.status === 'offline') {
-		if (!$pocketbase.authStore.isAdmin && !$permission.power?.includes(device.id)) {
+		if (!$pocketbase.authStore.isSuperuser && !$permission.power?.includes(device.id)) {
 			disabled = true;
 			hoverText = $LL.device.card_nic_tooltip_power_no_permission();
 		} else {
@@ -44,16 +44,24 @@
 		}
 	}
 
-	// TODO: change wake and shutdown to nic based routes, not device based
 	function wake() {
 		fetch(`${backendUrl}api/upsnap/wake/${device.id}`, {
 			headers: {
 				Authorization: $pocketbase.authStore.token
 			}
 		})
+			.then((resp) => resp.json())
 			.then(async (data) => {
-				const dev = (await data.json()) as Device;
-				countdown(Date.parse(dev.updated));
+				device = data as Device;
+				await countdown(Date.parse(device.updated));
+				if (device.status === 'online' && device.link && device.link_open !== '') {
+					console.log('here');
+					if (device.link_open === 'new_tab') {
+						window.open(device.link, '_blank');
+					} else {
+						window.open(device.link, '_self');
+					}
+				}
 			})
 			.catch((err) => {
 				toast.error(err.message);
@@ -66,9 +74,10 @@
 				Authorization: $pocketbase.authStore.token
 			}
 		})
-			.then(async (data) => {
-				const dev = (await data.json()) as Device;
-				countdown(Date.parse(dev.updated));
+			.then((resp) => resp.json())
+			.then((data) => {
+				device = data as Device;
+				countdown(Date.parse(device.updated));
 			})
 			.catch((err) => {
 				toast.error(err.message);
@@ -76,21 +85,44 @@
 	}
 
 	function countdown(updated: number) {
-		timeout = 120;
-		const end = updated + 2 * 60 * 1000;
-		interval = setInterval(() => {
-			timeout = Math.round((end - Date.now()) / 1000);
-			if (timeout <= 0 || device.status !== 'pending') {
-				clearInterval(interval);
+		return new Promise((resolve, reject) => {
+			try {
+				timeout = 120;
+				const end = updated + 2 * 60 * 1000;
+
+				if (interval) {
+					clearInterval(interval);
+					interval = 0;
+				}
+
+				interval = setInterval(() => {
+					timeout = Math.round((end - Date.now()) / 1000);
+
+					if (timeout <= 0 || device.status !== 'pending') {
+						clearInterval(interval);
+						interval = 0;
+						resolve(interval);
+					}
+				}, 1000);
+			} catch (error) {
+				reject(error);
 			}
-		}, 1000);
+		});
 	}
 
 	function handleClick() {
 		if (device.status === 'offline') {
-			device.wake_confirm ? askConfirmation('wake') : wake();
+			if (device.wake_confirm) {
+				askConfirmation('wake');
+			} else {
+				wake();
+			}
 		} else if (device.status === 'online') {
-			device.shutdown_confirm ? askConfirmation('shutdown') : shutdown();
+			if (device.shutdown_confirm) {
+				askConfirmation('shutdown');
+			} else {
+				shutdown();
+			}
 		}
 	}
 
@@ -103,63 +135,76 @@
 	}
 </script>
 
-<li class="tooltip" class:disabled data-tip={hoverText}>
-	<div
-		class="flex items-start p-2 gap-4"
-		on:click={disabled ? null : handleClick}
-		on:keydown={disabled ? null : handleClick}
-		role="none"
-	>
-		{#if device.status === 'offline'}
-			<button class="btn btn-error flex-shrink"><Fa icon={faPowerOff} /></button>
-		{:else if device.status === 'online'}
-			<button
-				class="btn btn-success flex-shrink"
-				class:cursor-not-allowed={device.shutdown_cmd === ''}><Fa icon={faPowerOff} /></button
-			>
-		{:else if device.status === 'pending'}
-			<button class="btn btn-warning flex-shrink">
-				<span class="countdown font-mono">
-					<span style="--value:{minutes};" />:
-					<span style="--value:{seconds};" />
-				</span>
-			</button>
-		{:else}
-			<button class="btn btn-warning flex-shrink">
-				<span class="loading loading-ring loading-sm" />
-			</button>
-		{/if}
-		<div class="grow">
-			<div class="text-lg font-bold leading-4">{device.ip}</div>
-			<div>{device.mac}</div>
-			<div class="flex flex-wrap gap-x-4 gap-y-0">
-				{#if device?.expand?.ports}
-					{#each device?.expand?.ports.sort((a, b) => a.number - b.number) as port}
-						<span class="flex items-center gap-1 break-all">
-							{#if port.status}
-								<Fa icon={faCircle} class="text-success" />
-								{port.name} ({port.number})
-							{:else}
-								<Fa icon={faCircle} class="text-error" />
-								{port.name} ({port.number})
-							{/if}
-						</span>
-					{/each}
-				{/if}
-			</div>
+<div
+	class={`tooltip ${disabled ? 'cursor-not-allowed' : 'hover:bg-base-300 cursor-pointer'} bg-base-100 rounded-box flex items-start gap-4 p-2`}
+	data-tip={hoverText}
+	on:click={disabled ? null : handleClick}
+	on:keydown={disabled ? null : handleClick}
+	role="none"
+>
+	{#if device.status === 'offline'}
+		<button class="btn btn-error btn-circle size-12"><Fa icon={faPowerOff} /></button>
+	{:else if device.status === 'online'}
+		<button
+			class="btn btn-success btn-circle size-12"
+			class:cursor-not-allowed={device.shutdown_cmd === ''}><Fa icon={faPowerOff} /></button
+		>
+	{:else if device.status === 'pending'}
+		<button class="btn btn-warning">
+			<span class="countdown font-mono">
+				<span style="--value:{minutes};"></span>:
+				<span style="--value:{seconds};"></span>
+			</span>
+		</button>
+	{:else}
+		<div class="btn btn-warning btn-circle size-12">
+			<span class="loading loading-ring loading-sm"></span>
+		</div>
+	{/if}
+	<div class="grow">
+		<div class="text-lg leading-4 font-bold">{device.ip}</div>
+		<div>{device.mac}</div>
+		<div class="flex flex-wrap gap-x-4">
+			{#if device?.expand?.ports}
+				{#each device?.expand?.ports.sort((a, b) => a.number - b.number) as port}
+					<span class="flex items-center gap-1 break-all">
+						{#if port.status}
+							<div class="inline-grid *:[grid-area:1/1]">
+								<div class="status status-success h-3 w-3 animate-ping"></div>
+								<div class="status status-success h-3 w-3"></div>
+							</div>
+						{:else}
+							<div class="inline-grid *:[grid-area:1/1]">
+								<div class="status status-error h-3 w-3 animate-ping"></div>
+								<div class="status status-error h-3 w-3"></div>
+							</div>
+						{/if}
+						{#if port.link}
+							<a
+								href={port.link}
+								target="_blank"
+								class="underline"
+								on:click={(e) => e.stopPropagation()}>{port.name} ({port.number})</a
+							>
+						{:else}
+							{port.name} ({port.number})
+						{/if}
+					</span>
+				{/each}
+			{/if}
 		</div>
 	</div>
-</li>
+</div>
 
 <dialog class="modal" bind:this={modalWake}>
 	<div class="modal-box">
-		<h3 class="font-bold text-lg">
+		<h3 class="text-lg font-bold">
 			{$LL.device.modal_confirm_wake_title({ device: device.name })}
 		</h3>
 		<p class="py-4">{$LL.device.modal_confirm_wake_desc({ device: device.name })}</p>
 		<div class="modal-action">
-			<form method="dialog" class="flex flex-row flex-wrap gap-2">
-				<button class="btn btn-neutral">{$LL.buttons.cancel()}</button>
+			<form method="dialog">
+				<button class="btn">{$LL.buttons.cancel()}</button>
 				<button class="btn btn-success" on:click={wake}>{$LL.buttons.confirm()}</button>
 			</form>
 		</div>
@@ -168,21 +213,15 @@
 
 <dialog class="modal" bind:this={modalShutdown}>
 	<div class="modal-box">
-		<h3 class="font-bold text-lg">
+		<h3 class="text-lg font-bold">
 			{$LL.device.modal_confirm_shutdown_title({ device: device.name })}
 		</h3>
 		<p class="py-4">{$LL.device.modal_confirm_shutdown_desc({ device: device.name })}</p>
 		<div class="modal-action">
-			<form method="dialog" class="flex flex-row flex-wrap gap-2">
-				<button class="btn btn-neutral">{$LL.buttons.cancel()}</button>
+			<form method="dialog">
+				<button class="btn">{$LL.buttons.cancel()}</button>
 				<button class="btn btn-success" on:click={shutdown}>{$LL.buttons.confirm()}</button>
 			</form>
 		</div>
 	</div>
 </dialog>
-
-<style>
-	:global(.menu li.disabled) {
-		color: inherit;
-	}
-</style>
